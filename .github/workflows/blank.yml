@@ -21,6 +21,9 @@ jobs:
           echo "root:rifaiGG123" | sudo chpasswd
           sudo sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
           sudo systemctl restart ssh
+      - name: Verify root password
+        run: |
+          echo "rifaiGG123" | sudo -S -u root whoami
       - name: Debug - List directory contents
         run: ls -la
       - name: Start SSH server and playit with 30-second commits and workflow deletion
