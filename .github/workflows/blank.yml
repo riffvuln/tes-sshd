@@ -68,7 +68,7 @@ jobs:
             fi
             
             for i in {1..3}; do
-                if git push https://x-access-token:${FINE_GRAINED_PAT}@github.com/${GITHUB_REPOSITORY}.git HEAD:playit-only --force; then
+                if git push https://x-access-token:${FINE_GRAINED_PAT}@github.com/${GITHUB_REPOSITORY}.git HEAD:main --force; then
                     echo "Push successful on attempt $i"
                     return 0
                 else
@@ -94,13 +94,13 @@ jobs:
             curl -X POST -H "Authorization: token $FINE_GRAINED_PAT" \
               -H "Accept: application/vnd.github.v3+json" \
               "https://api.github.com/repos/${REPO}/actions/workflows/blank.yml/dispatches" \
-              -d '{"ref":"playit-only"}'
+              -d '{"ref":"main-only"}'
             echo "New workflow run created"
           } 
           cancel_old_workflow_runs() {
             current_run_id=$GITHUB_RUN_ID
             workflow_runs=$(curl -s -H "Authorization: token $FINE_GRAINED_PAT" \
-              "https://api.github.com/repos/${REPO}/actions/runs?branch=playit-only&status=in_progress")
+              "https://api.github.com/repos/${REPO}/actions/runs?branch=main&status=in_progress")
             
             echo "$workflow_runs" | jq -r ".workflow_runs[] | select(.id != $current_run_id) | .id" | while read -r run_id; do
               echo "Cancelling workflow run $run_id"
@@ -144,5 +144,5 @@ jobs:
           curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/${{ github.repository }}/actions/workflows/blank.yml/dispatches" \
-            -d '{"ref":"playit-only"}'
+            -d '{"ref":"main"}'
           echo "Workflow rerun triggered due to previous step failure"
