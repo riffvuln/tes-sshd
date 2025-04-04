@@ -13,6 +13,10 @@ jobs:
       - name: Debug pwd
         run: |
           pwd
+      - name: Install Rust Language
+        run: |
+          sudo apt install rustup
+          sudo rustup toolchain install nightly
       - name: Install SSH server
         run: |
           sudo apt-get update
