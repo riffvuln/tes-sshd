@@ -21,6 +21,8 @@ jobs:
           sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
           sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
           sudo sed -i 's/#PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
+          echo "root:$(openssl rand -base64 12)" | sudo chpasswd  # Set a random password for root
+          sudo passwd -d root  # Remove the password for root to allow empty password
           sudo systemctl restart ssh
       - name: Debug - List directory contents
         run: ls -la
