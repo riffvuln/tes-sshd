@@ -14,6 +14,7 @@ jobs:
         run: |
           pwd
       - name: Install Rust Language
+        continue-on-error: true
         run: |
           sudo apt install rustup
           sudo rustup toolchain install nightly
