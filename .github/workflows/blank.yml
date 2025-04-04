@@ -16,7 +16,6 @@ jobs:
       - name: Install Rust Language
         continue-on-error: true
         run: |
-          sudo apt update && sudo apt upgrade
           sudo apt install rustup
           sudo apt install gcc
           sudo rustup update nightly
