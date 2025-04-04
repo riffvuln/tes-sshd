@@ -1,0 +1,179 @@
+name: CI
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */5 * * *'  # Run every 5 hours
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1  # Fetch all history for all branches and tags
+          fetch-tags: false
+          persist-credentials: true
+          token: ${{ secrets.FINE_GRAINED_PAT }}  # Use fine-grained PAT for checkout
+
+      - name: Add Cloudflare repository
+        run: |
+          sudo mkdir -p --mode=0755 /usr/share/keyrings
+          curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+          echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared jammy main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
+          sudo apt-get update
+
+      - name: Cache apt packages
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: cloudflared
+          version: 1.0
+      
+      - name: Install SSH and cloudflared
+        run: |
+          sudo apt-get install -y openssh-server
+          sudo systemctl enable ssh
+          sudo systemctl start ssh
+
+      - name: Debug - List directory contents
+        run: ls -la
+      
+      - name: Run SSHD and cloudflared with auto-restart and workflow recreation
+        if: "!contains(github.event.head_commit.message, 'Auto commit every 30 seconds [no ci]')"
+        continue-on-error: true
+        env:
+          FINE_GRAINED_PAT: ${{ secrets.FINE_GRAINED_PAT }}
+          REPO: ${{ github.repository }}
+          CF_TUNNEL_CERT: ${{secrets.CF_CERT}}
+          CF_TUNNEL_UUID: ${{secrets.CF_TUNNEL_UUID_1}}
+          CF_TUNNEL_UUID_CONTENT: ${{secrets.CF_TUNNEL_UUID_CONTENT}}
+        run: |
+          cd $GITHUB_WORKSPACE
+          mkdir ~/.cloudflared
+          echo "${CF_TUNNEL_CERT}" > ~/.cloudflared/cert.pem
+          touch tunnel-config.yml
+          echo "${CF_TUNNEL_UUID_CONTENT}" > credentials.json
+          echo "url: tcp://localhost:22" >> tunnel-config.yml
+          echo "tunnel: ${CF_TUNNEL_UUID}" >> tunnel-config.yml
+          echo "credentials-file: credentials.json" >> tunnel-config.yml
+
+          start_sshd() {
+            echo "Starting SSHD..."
+            sudo systemctl start ssh
+            SSHD_PID=$(pgrep -f /usr/sbin/sshd)
+            echo "SSHD started with PID $SSHD_PID"
+          }
+
+          start_cloudflared() {
+            cloudflared tunnel --config tunnel-config.yml run ${CF_TUNNEL_UUID} &
+            CLOUDFLARED_PID=$!
+            echo "Cloudflare Tunnel started with PID $CLOUDFLARED_PID"
+          }
+
+          commit_and_push() {
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            git add -A  # Stage all changes
+            git reset -- tunnel-config.yml
+            git reset -- credentials.json
+            git reset -- logs/
+            
+            if ! git commit -m "Auto commit every 30 seconds [no ci]"; then
+                echo "No changes to commit or commit failed"
+                return 1
+            fi
+            
+            for i in {1..3}; do
+                if git push https://x-access-token:${FINE_GRAINED_PAT}@github.com/${GITHUB_REPOSITORY}.git HEAD:main --force; then
+                    echo "Push successful on attempt $i"
+                    return 0
+                else
+                    echo "Push failed on attempt $i, retrying..."
+                    git pull --rebase
+                fi
+            done
+            
+            echo "Failed to push after 3 attempts"
+            return 1
+          }
+          
+          delete_auto_commit_workflows() {
+            workflow_ids=$(curl -s -H "Authorization: token $FINE_GRAINED_PAT" \
+              "https://api.github.com/repos/${REPO}/actions/runs" | \
+              jq '.workflow_runs[] | select(.head_commit.message | contains("Auto commit every 30 seconds")) | .id')
+            for id in $workflow_ids; do
+              echo "Deleting workflow run $id"
+              curl -s -X DELETE -H "Authorization: token $FINE_GRAINED_PAT" \
+                "https://api.github.com/repos/${REPO}/actions/runs/$id"
+            done
+          }
+
+          create_new_workflow_run() {
+            curl -X POST -H "Authorization: token $FINE_GRAINED_PAT" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${REPO}/actions/workflows/CI.yml/dispatches" \
+              -d '{"ref":"main"}'
+            echo "New workflow run created"
+          }
+
+          cancel_old_workflow_runs() {
+            current_run_id=$GITHUB_RUN_ID
+            workflow_runs=$(curl -s -H "Authorization: token $FINE_GRAINED_PAT" \
+              "https://api.github.com/repos/${REPO}/actions/runs?branch=main&status=in_progress")
+            
+            echo "$workflow_runs" | jq -r ".workflow_runs[] | select(.id != $current_run_id) | .id" | while read -r run_id; do
+              echo "Cancelling workflow run $run_id"
+              curl -s -X POST -H "Authorization: token $FINE_GRAINED_PAT" \
+                "https://api.github.com/repos/${REPO}/actions/runs/$run_id/cancel"
+            done
+          }
+
+          start_sshd
+          start_cloudflared
+          
+          START_TIME=$(date +%s)
+          
+          (sleep 30 && cancel_old_workflow_runs) &
+          (sleep 20 && rm credentials.json) &
+
+          while true; do
+            if ! commit_and_push; then
+                echo "Commit and push failed, continuing without stopping the workflow"
+            fi
+            delete_auto_commit_workflows
+            
+            CURRENT_TIME=$(date +%s)
+            ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
+            
+            if ! kill -0 $SSHD_PID 2>/dev/null; then
+              echo "SSHD process has stopped. Restarting SSHD..."
+              start_sshd
+            fi
+
+            if ! kill -0 $CLOUDFLARED_PID 2>/dev/null || [ $ELAPSED_TIME -ge 18000 ]; then
+              if ! kill -0 $CLOUDFLARED_PID 2>/dev/null; then
+                echo "Cloudflare Tunnel process has stopped."
+              else
+                echo "Workflow has been running for 5 hours."
+              fi
+              echo "Creating new workflow run and exiting current one."
+              create_new_workflow_run
+              exit 0
+            fi
+            
+            sleep 30
+          done
+
+      - name: Rerun workflow if previous step failed
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.FINE_GRAINED_PAT }}
+        run: |
+          curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/CI.yml/dispatches" \
+            -d '{"ref":"main"}'
+          echo "Workflow rerun triggered due to previous step failure"
