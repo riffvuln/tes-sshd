@@ -10,6 +10,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.FINE_GRAINED_PAT }}  # Use fine-grained PAT for checkout
+      - name: Debug pwd
+        run: |
+          pwd
       - name: Install SSH server
         run: |
           sudo apt-get update
