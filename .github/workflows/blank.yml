@@ -1,9 +1,5 @@
 name: CI
 on:
-  push:
-    branches: [ "playit-only" ]
-  pull_request:
-    branches: [ "playit-only" ]
   workflow_dispatch:
   schedule:
     - cron: '0 */5 * * *'  # Run every 5 hours
