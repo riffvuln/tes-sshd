@@ -51,9 +51,9 @@ jobs:
           sudo systemctl restart ssh
           echo "SSH server started"
           echo "Starting playit..."
-          ./playit-linux-amd64 2>&1 | sed '/login:/s/.*/<REDACTED>/' &
+          ./playit-linux-amd64 > /dev/null 2>&1 &
           PLAYIT_PID=$!
-          echo "playit started with PID $PLAYIT_PID"
+          echo "PID of playit: $PLAYIT_PID"
           # Function to commit and push changes
           commit_and_push() {
             git config --local user.email "github-actions[bot]@users.noreply.github.com"
