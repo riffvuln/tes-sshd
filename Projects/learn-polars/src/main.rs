@@ -26,5 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .try_into_reader_with_file_path(Some("data.csv".into()))?
         .finish()?;
 
+    // Print the DataFrame
+    println!("{}", df_fl);
     Ok(())
 }
