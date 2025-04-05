@@ -25,9 +25,9 @@ impl<'a> Person<'a> {
 
 fn main() {
     let dataf = df!(
-        Person::new("Alice", 30, "New York", 70000.0, true, NaiveDate::from_ymd(2020, 1, 1)),
-        Person::new("Bob", 25, "Los Angeles", 50000.0, false, NaiveDate::from_ymd(2021, 6, 15)),
-        Person::new("Charlie", 35, "Chicago", 80000.0, true, NaiveDate::from_ymd(2019, 3, 10)),   
+        "1" => Person::new("Alice", 30, "New York", 70000.0, true, NaiveDate::from_ymd(2020, 1, 1)),
+        "2" => Person::new("Bob", 25, "Los Angeles", 50000.0, false, NaiveDate::from_ymd(2021, 6, 15)),
+        "3" => Person::new("Charlie", 35, "Chicago", 80000.0, true, NaiveDate::from_ymd(2019, 3, 10)),   
     ).unwrap();
 
     dataf.iter().for_each(|s| {
