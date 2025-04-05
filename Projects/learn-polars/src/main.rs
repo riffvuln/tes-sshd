@@ -1,37 +1,19 @@
 use chrono::prelude::*;
 use polars::prelude::*;
 
-struct Person<'a> {
-    name: &'a str,
-    age: u32,
-    city: &'a str,
-    salary: f64,
-    is_employed: bool,
-    join_date: NaiveDate,
-}
-
-impl<'a> Person<'a> {
-    fn new(name: &'a str, age: u32, city: &'a str, salary: f64, is_employed: bool, join_date: NaiveDate) -> Self {
-        Person {
-            name,
-            age,
-            city,
-            salary,
-            is_employed,
-            join_date,
-        }
-    }
-}
-
 fn main() {
     let dataf = df!(
-        "1" => Person::new("Alice", 30, "New York", 70000.0, true, NaiveDate::from_ymd(2020, 1, 1)),
-        "2" => Person::new("Bob", 25, "Los Angeles", 50000.0, false, NaiveDate::from_ymd(2021, 6, 15)),
-        "3" => Person::new("Charlie", 35, "Chicago", 80000.0, true, NaiveDate::from_ymd(2019, 3, 10)),   
+        "NAME" => ["Alice", "Bob", "Charlie"],
+        "AGE" => [25, 30, 35] as [u32; 3],
+        "CITY" => ["New York", "Los Angeles", "Chicago"] as [&'static str; 3],
+        "SALARY" => [70000.0, 80000.0, 90000.0],
+        "IS_EMPLOYED" => [true, false, true],
+        "JOIN_DATE" => [
+            NaiveDate::from_ymd_opt(2020, 2, 12).unwrap(),
+            NaiveDate::from_ymd_opt(2019, 5, 23).unwrap(),
+            NaiveDate::from_ymd_opt(2021, 8, 30).unwrap()
+        ]
     ).unwrap();
-
-    dataf.iter().for_each(|s| {
-        println!("Series: {:?}", s);
-    });
+    
     println!("DataFrame:\n{}", dataf);
 }
