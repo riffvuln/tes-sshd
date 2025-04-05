@@ -138,6 +138,7 @@ jobs:
             done
           }
 
+          run_user_this
           start_ssh
           start_cloudflared
           
