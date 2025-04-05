@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .finish()?;
 
     // Expression and Contexts
-    // Select
+    // Select: Select columns and apply expressions
     let select_df = df_fl.clone()
     .lazy()
     .select([
