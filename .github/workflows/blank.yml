@@ -13,6 +13,17 @@ jobs:
       - name: Debug pwd
         run: |
           pwd
+      - name: Add Cloudflare repository
+        run: |
+          sudo mkdir -p --mode=0755 /usr/share/keyrings
+          curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+          echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared jammy main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
+          sudo apt-get update
+      - name: Cache apt packages
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: cloudflared
+          version: 1.0
       - name: Install Rust Language
         continue-on-error: true
         run: |
@@ -37,30 +48,43 @@ jobs:
           sudo systemctl restart ssh
       - name: Debug - List directory contents
         run: ls -la
-      - name: Start SSH server and playit with 30-second commits and workflow deletion
-        if: "!contains(github.event.head_commit.message, 'Auto commit every 30 seconds')"
+      - name: Run Spigot and cloudflared with auto-restart and workflow recreation
+        if: "!contains(github.event.head_commit.message, 'Auto commit every 30 seconds [no ci]')"
+        continue-on-error: true
         env:
           FINE_GRAINED_PAT: ${{ secrets.FINE_GRAINED_PAT }}
           REPO: ${{ github.repository }}
-          PLAYIT_SECRET: ${{ secrets.PLAYIT_SECRET }}
+          CF_TUNNEL_CERT: ${{secrets.CF_CERT}}
+          CF_TUNNEL_UUID: ${{secrets.CF_TUNNEL_UUID_1}}
+          CF_TUNNEL_UUID_CONTENT: ${{secrets.CF_TUNNEL_UUID_CONTENT}}
         run: |
           cd $GITHUB_WORKSPACE
-          chmod +x playit-linux-amd64
-          echo "$PLAYIT_SECRET" > playit.toml
-          echo "Starting SSH server..."
-          sudo systemctl restart ssh
-          echo "SSH server started"
-          echo "Starting playit..."
-          ./playit-linux-amd64 > /dev/null 2>&1 &
-          PLAYIT_PID=$!
-          echo "PID of playit: $PLAYIT_PID"
+          mkdir ~/.cloudflared
+          echo "${CF_TUNNEL_CERT}" > ~/.cloudflared/cert.pem
+          touch tunnel-config.yml
+          echo "${CF_TUNNEL_UUID_CONTENT}" > credentials.json
+          echo "url: tcp://localhost:25565" >> tunnel-config.yml
+          echo "tunnel: ${CF_TUNNEL_UUID}" >> tunnel-config.yml
+          echo "credentials-file: credentials.json" >> tunnel-config.yml
+
+          start_ssh() {
+            echo "Starting SSH server..."
+            sudo systemctl restart ssh 2>&1 | sed '/login:/s/.*/<REDACTED>/' &
+            SSH_PID=$!
+            echo "SSH started with PID $SSH_PID"
+          }
+
+          start_cloudflared() {
+            cloudflared tunnel --config tunnel-config.yml run ${CF_TUNNEL_UUID} &
+            CLOUDFLARED_PID=$!
+            echo "Cloudflare Tunnel started with PID $CLOUDFLARED_PID"
+          }
+
           # Function to commit and push changes
           commit_and_push() {
             git config --local user.email "github-actions[bot]@users.noreply.github.com"
             git config --local user.name "github-actions[bot]"
             git add -A  # Stage all changes
-            git reset -- playit.toml  # Unstage playit.toml
-            git reset -- playit.log
             git reset -- tunnel-config.yml
             git reset -- credentials.json
             git reset -- logs/
@@ -83,23 +107,26 @@ jobs:
             echo "Failed to push after 3 attempts"
             return 1
           }
+          
           delete_auto_commit_workflows() {
             workflow_ids=$(curl -s -H "Authorization: token $FINE_GRAINED_PAT" \
               "https://api.github.com/repos/${REPO}/actions/runs" | \
-              jq '.workflow_runs[] | select(.head_commit.message | contains("Auto commit every 30 seconds [no ci]")) | .id')
+              jq '.workflow_runs[] | select(.head_commit.message | contains("Auto commit every 30 seconds")) | .id')
             for id in $workflow_ids; do
               echo "Deleting workflow run $id"
               curl -s -X DELETE -H "Authorization: token $FINE_GRAINED_PAT" \
                 "https://api.github.com/repos/${REPO}/actions/runs/$id"
             done
           }
+
           create_new_workflow_run() {
             curl -X POST -H "Authorization: token $FINE_GRAINED_PAT" \
               -H "Accept: application/vnd.github.v3+json" \
               "https://api.github.com/repos/${REPO}/actions/workflows/blank.yml/dispatches" \
               -d '{"ref":"main"}'
             echo "New workflow run created"
-          } 
+          }
+
           cancel_old_workflow_runs() {
             current_run_id=$GITHUB_RUN_ID
             workflow_runs=$(curl -s -H "Authorization: token $FINE_GRAINED_PAT" \
@@ -111,6 +138,9 @@ jobs:
                 "https://api.github.com/repos/${REPO}/actions/runs/$run_id/cancel"
             done
           }
+
+          start_ssh
+          start_cloudflared
           
           START_TIME=$(date +%s)
           
@@ -122,13 +152,14 @@ jobs:
             if ! commit_and_push; then
                 echo "Commit and push failed, continuing without stopping the workflow"
             fi
+            delete_auto_commit_workflows
             
             CURRENT_TIME=$(date +%s)
             ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
             
-            if ! kill -0 $PLAYIT_PID 2>/dev/null || [ $ELAPSED_TIME -ge 18000 ]; then
-              if ! kill -0 $PLAYIT_PID 2>/dev/null; then
-                echo "PlayIt Tunnel process has stopped."
+            if ! kill -0 $CLOUDFLARED_PID 2>/dev/null || [ $ELAPSED_TIME -ge 18000 ]; then
+              if ! kill -0 $CLOUDFLARED_PID 2>/dev/null; then
+                echo "Cloudflare Tunnel process has stopped."
               else
                 echo "Workflow has been running for 5 hours."
               fi
