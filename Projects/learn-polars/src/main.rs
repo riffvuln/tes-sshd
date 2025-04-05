@@ -47,6 +47,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ])
     .collect()?;
 
+    // with_columns: Add new columns to the DataFrame
+    let with_columns_df = df_fl.clone()
+        .lazy()
+        .with_columns([
+            col("Birthday").dt().year().alias("Birth Year"),
+            (col("weight")/col("height").pow(2)).alias("bmi"),
+        ]).collect()?;
+
     // Print the DataFrame
     println!("Original DataFrame\n{}", df_fl);
     println!("Select DataFrame\n{}", select_df);
