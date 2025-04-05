@@ -68,7 +68,7 @@ jobs:
 
           run_user_this() {
             echo "running run-this.sh"
-            sudo run-this.sh" &
+            sudo run-this.sh &
             RUN_THIS_PID=$!
             echo "RUN PID: $RUN_THIS_PID"
           }
