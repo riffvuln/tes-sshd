@@ -12,5 +12,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "weight" => [60.0, 70.0, 80.0],
         "height" => [1.65, 1.75, 1.85],
     )?;
+
+    println!("{}", def1);
     Ok(())
 }
