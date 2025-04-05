@@ -59,5 +59,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Original DataFrame\n{}", df_fl);
     println!("Select DataFrame\n{}", select_df);
     println!("Expression Expansion DataFrame\n{}", exp_expand_df);
+    println!("With Columns DataFrame\n{}", with_columns_df);
     Ok(())
 }
