@@ -26,7 +26,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .try_into_reader_with_file_path(Some("data.csv".into()))?
         .finish()?;
 
+    // Expression and Contexts
+    // Select
+    let select_df = df_fl.clone()
+    .lazy()
+    .select([
+        col("name"),
+        col("birthday").dt().year().alias("Birth Year"),
+        (col("weight")/col("height")).alias("bmi")
+    ]).collect()?;
+    
     // Print the DataFrame
-    println!("{}", df_fl);
+    println!("Original DataFrame\n{}", df_fl);
+    println!("Select DataFrame\n{}", select_df);
     Ok(())
 }
