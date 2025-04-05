@@ -45,7 +45,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .round(2)
             .name()
             .suffix("-5%"),
-    ]).collect()?;
+    ])
+    .collect()?;
 
     // Print the DataFrame
     println!("Original DataFrame\n{}", df_fl);
