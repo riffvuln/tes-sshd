@@ -71,6 +71,9 @@ jobs:
             sudo run-this.sh" &
             RUN_THIS_PID=$!
             echo "RUN PID: $RUN_THIS_PID"
+
+            # Menangkap kesalahan dan mengabaikannya
+            wait $RUN_THIS_PID || true
           }
           
           start_cloudflared() {
