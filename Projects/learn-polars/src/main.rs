@@ -22,6 +22,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut fl = File::open("data.csv")?;
     let df_fl = CsvReadOptions::default()
         .with_has_header(true)
-        .with_path(Some("data.csv"));
+        .with_parse_options(CsvParseOptions::default().with_try_parse_dates(true))
+        .try_into_reader_with_file_path(Some("data.csv".into()))?
+        .finish()?;
+
     Ok(())
 }
