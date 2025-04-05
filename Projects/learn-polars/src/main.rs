@@ -1,3 +1,5 @@
+use std::path::Iter;
+
 use chrono::prelude::*;
 use polars::prelude::*;
 
@@ -5,17 +7,11 @@ struct ListDataFrame {
     frames: Vec<DataFrame>,
 }
 
-impl ListDataFrame {
-    fn new() -> Self {
-        ListDataFrame { frames: Vec::new() }
-    }
+impl Iterator for ListDataFrame {
+    type Item = DataFrame;
 
-    fn add_frame(&mut self, frame: DataFrame) {
-        self.frames.push(frame);
-    }
-
-    fn get_frame(&self, index: usize) -> Option<&DataFrame> {
-        self.frames.get(index)
+    fn next(&mut self) -> Option<Self::Item> {
+        self.frames.pop()
     }
 }
 
