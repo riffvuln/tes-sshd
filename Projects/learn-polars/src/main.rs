@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .lazy()
     .select([
         col("name"),
-        col("birthday").dt().year().alias("Birth Year"),
+        col("Birthday").dt().year().alias("Birth Year"),
         (col("weight")/col("height").pow(2)).alias("bmi")
     ]).collect()?;
     
