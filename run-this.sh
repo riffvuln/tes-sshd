@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 sudo apt install rustup
 sudo apt install gcc
