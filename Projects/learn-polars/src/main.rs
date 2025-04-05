@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .select([
         col("name"),
         (cols(["weight", "height"]) * lit(0.95))
-            .round_digits(2)
+            .round(2)
             .name()
             .suffix("-5%"),
     ]).collect()?;
