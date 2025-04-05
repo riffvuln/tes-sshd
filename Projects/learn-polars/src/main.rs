@@ -4,7 +4,7 @@ use polars::prelude::*;
 fn main() {
     let dataf = df!(
         "NAME" => ["Alice", "Bob", "Charlie"],
-        "AGE" => [25, 30, 35],
+        "AGE" => [25, 30, 35] as Vec<u32>,
         "CITY" => ["New York", "Los Angeles", "Chicago"],
         "SALARY" => [70000.0, 80000.0, 90000.0],
         "IS_EMPLOYED" => [true, false, true],
