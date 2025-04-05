@@ -30,18 +30,27 @@ impl Iterator for ListDataFrame {
 }
 
 fn main() {
-    let dataf = df!(
-        "NAME" => ["Alice", "Bob", "Charlie"],
-        "AGE" => [25, 30, 35] as [u32; 3],
-        "CITY" => ["New York", "Los Angeles", "Chicago"] as [&'static str; 3],
-        "SALARY" => [70000.0, 80000.0, 90000.0],
-        "IS_EMPLOYED" => [true, false, true],
-        "JOIN_DATE" => [
-            NaiveDate::from_ymd_opt(2020, 2, 12).unwrap(),
-            NaiveDate::from_ymd_opt(2019, 5, 23).unwrap(),
-            NaiveDate::from_ymd_opt(2021, 8, 30).unwrap()
-        ]
-    ).unwrap();
-    
-    println!("DataFrame:\n{}", dataf);
+    let mut list_df = ListDataFrame::new();
+    let mut df1 = DataFrame::new(vec![
+        Series::new("a", &[1, 2, 3]),
+        Series::new("b", &[4, 5, 6]),
+    ])
+    .unwrap();
+    let mut df2 = DataFrame::new(vec![
+        Series::new("c", &[7, 8, 9]),
+        Series::new("d", &[10, 11, 12]),
+    ])
+    .unwrap();
+    let mut df3 = DataFrame::new(vec![
+        Series::new("e", &[13, 14, 15]),
+        Series::new("f", &[16, 17, 18]),
+    ])
+    .unwrap();
+    list_df.add_frame(df1);
+    list_df.add_frame(df2);
+    list_df.add_frame(df3);
+
+    for frame in list_df {
+        println!("DataFrame:\n{}", frame);
+    }
 }
