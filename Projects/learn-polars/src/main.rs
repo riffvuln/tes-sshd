@@ -1,3 +1,4 @@
+use chrono::prelude::*;
 use polars::prelude::*;
 
 fn main() {
@@ -8,9 +9,7 @@ fn main() {
         "SALARY" => [70000.0, 80000.0, 90000.0],
         "IS_EMPLOYED" => [true, false, true],
         "JOIN_DATE" => [
-            "2020-01-01",
-            "2019-05-15",
-            "2021-07-20"
+            NaiveDate::from_ymd_opt(2020, 2, 12).unwrap(),
         ]
     ).unwrap();
 
