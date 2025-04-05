@@ -36,6 +36,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         (col("weight")/col("height").pow(2)).alias("bmi")
     ]).collect()?;
     
+    // expression expansion
+    let exp_expand_df = df_fl.clone()
+    .lazy()
+    .select([
+        col("name"),
+        (cols([("weight", "height")]) * lit(0.95))
+            .round(2)
+            .name()
+            .suffix("-5%"),
+    ]).collect()?;
+
     // Print the DataFrame
     println!("Original DataFrame\n{}", df_fl);
     println!("Select DataFrame\n{}", select_df);
