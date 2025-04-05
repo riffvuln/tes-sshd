@@ -31,20 +31,20 @@ impl Iterator for ListDataFrame {
 
 fn main() {
     let mut list_df = ListDataFrame::new();
-    let mut df1 = DataFrame::new(vec![
-        Series::new("a", &[1, 2, 3]),
-        Series::new("b", &[4, 5, 6]),
-    ])
+    let mut df1 = df!(
+        "a" => &[1, 2, 3],
+        "b" => &[4, 5, 6],
+    )
     .unwrap();
-    let mut df2 = DataFrame::new(vec![
-        Series::new("c", &[7, 8, 9]),
-        Series::new("d", &[10, 11, 12]),
-    ])
+    let mut df2 = df!(
+        "c" => &[7, 8, 9],
+        "d" => &[10, 11, 12],
+    )
     .unwrap();
-    let mut df3 = DataFrame::new(vec![
-        Series::new("e", &[13, 14, 15]),
-        Series::new("f", &[16, 17, 18]),
-    ])
+    let mut df3 = df!(
+        "e" => &[13, 14, 15],
+        "f" => &[16, 17, 18],
+    )
     .unwrap();
     list_df.add_frame(df1);
     list_df.add_frame(df2);
