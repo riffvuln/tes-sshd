@@ -7,6 +7,20 @@ struct ListDataFrame {
     frames: Vec<DataFrame>,
 }
 
+impl ListDataFrame {
+    fn new() -> Self {
+        ListDataFrame { frames: Vec::new() }
+    }
+
+    fn add_frame(&mut self, frame: DataFrame) {
+        self.frames.push(frame);
+    }
+
+    fn get_frame(&self, index: usize) -> Option<&DataFrame> {
+        self.frames.get(index)
+    }
+}
+
 impl Iterator for ListDataFrame {
     type Item = DataFrame;
 
