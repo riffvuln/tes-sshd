@@ -42,7 +42,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .select([
         col("name"),
         (cols(["weight", "height"]) * lit(0.95))
-            .round(2)
             .name()
             .suffix("-5%"),
     ])
@@ -51,5 +50,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Print the DataFrame
     println!("Original DataFrame\n{}", df_fl);
     println!("Select DataFrame\n{}", select_df);
+    println!("Expression Expansion DataFrame\n{}", exp_expand_df);
     Ok(())
 }
