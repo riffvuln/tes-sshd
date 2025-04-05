@@ -11,7 +11,7 @@ fn main() {
         "JOIN_DATE" => [
             NaiveDate::from_ymd_opt(2020, 2, 12).unwrap(),
             NaiveDate::from_ymd_opt(2019, 5, 23).unwrap(),
-            None,
+            NaiveDate::from_ymd_opt(2021, 8, 30).unwrap()
         ]
     ).unwrap();
 
