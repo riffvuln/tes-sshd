@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .select([
         col("name"),
         col("birthday").dt().year().alias("Birth Year"),
-        (col("weight")/col("height")).alias("bmi")
+        (col("weight")/col("height").pow(2)).alias("bmi")
     ]).collect()?;
     
     // Print the DataFrame
