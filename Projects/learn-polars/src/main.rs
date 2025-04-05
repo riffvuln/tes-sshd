@@ -15,6 +15,8 @@ fn main() {
         ]
     ).unwrap();
 
-
+    dataf.iter()().for_each(|s| {
+        println!("Series: {:?}", s);
+    });
     println!("DataFrame:\n{}", dataf);
 }
