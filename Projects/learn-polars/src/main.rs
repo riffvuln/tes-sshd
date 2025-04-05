@@ -41,7 +41,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .lazy()
     .select([
         col("name"),
-        (cols([("weight", "height")]) * lit(0.95))
+        (cols(["weight", "height"]) * lit(0.95))
             .round(2)
             .name()
             .suffix("-5%"),
