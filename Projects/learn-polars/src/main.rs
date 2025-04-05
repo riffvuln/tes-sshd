@@ -17,7 +17,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Save the DataFrame to a CSV file
     let mut fl = File::create("data.csv")?;
     CsvWriter::new(&mut fl).include_header(true).with_separator(b',').finish(&mut def1)?;
-
     println!("{}", def1);
     Ok(())
 }
