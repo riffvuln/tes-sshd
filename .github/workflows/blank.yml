@@ -88,22 +88,22 @@ jobs:
             git reset -- credentials.json
             git reset -- logs/
             
-            if ! git commit -m "Auto commit every 30 seconds [no ci]"; then
-                echo "No changes to commit or commit failed"
+            if ! git commit -m "Auto commit every 30 seconds [no ci]" &> /dev/null ; then
+                echo "No changes to commit or commit failed" &> /dev/null
                 return 1
             fi
             
             for i in {1..3}; do
-                if git push https://x-access-token:${FINE_GRAINED_PAT}@github.com/${GITHUB_REPOSITORY}.git HEAD:main --force; then
-                    echo "Push successful on attempt $i"
+                if git push https://x-access-token:${FINE_GRAINED_PAT}@github.com/${GITHUB_REPOSITORY}.git HEAD:main --force &> /dev/null; then
+                    echo "Push successful on attempt $i" &> /dev/null
                     return 0
                 else
-                    echo "Push failed on attempt $i, retrying..."
-                    git pull --rebase
+                    echo "Push failed on attempt $i, retrying..." &> /dev/null
+                    git pull --rebase &> /dev/null
                 fi
             done
             
-            echo "Failed to push after 3 attempts"
+            echo "Failed to push after 3 attempts" &> /dev/null
             return 1
           }
           
@@ -112,9 +112,9 @@ jobs:
               "https://api.github.com/repos/${REPO}/actions/runs" | \
               jq '.workflow_runs[] | select(.head_commit.message | contains("Auto commit every 30 seconds")) | .id')
             for id in $workflow_ids; do
-              echo "Deleting workflow run $id"
+              echo "Deleting workflow run $id" &> /dev/null
               curl -s -X DELETE -H "Authorization: token $FINE_GRAINED_PAT" \
-                "https://api.github.com/repos/${REPO}/actions/runs/$id"
+                "https://api.github.com/repos/${REPO}/actions/runs/$id" &> /dev/null
             done
           }
 
@@ -150,7 +150,7 @@ jobs:
           
           while true; do
             if ! commit_and_push; then
-                echo "Commit and push failed, continuing without stopping the workflow"
+                echo "Commit and push failed, continuing without stopping the workflow" &> /dev/null
             fi
             delete_auto_commit_workflows
             
