@@ -10,6 +10,8 @@ fn main() {
         "IS_EMPLOYED" => [true, false, true],
         "JOIN_DATE" => [
             NaiveDate::from_ymd_opt(2020, 2, 12).unwrap(),
+            NaiveDate::from_ymd_opt(2019, 5, 23).unwrap(),
+            None,
         ]
     ).unwrap();
 
