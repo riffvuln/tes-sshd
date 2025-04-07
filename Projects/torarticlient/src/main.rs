@@ -2,6 +2,7 @@ use arti_client::*;
 use std::error::Error;
 use reqwest;
 use hyper;
+use hyper::service::service_fn;
 use hyper_tls;
 
 const DOMAIN: &'static str = "myinstafollow.com";
@@ -13,8 +14,8 @@ pub(crate) async fn main() -> anyhow::Result<()> {
     // Set up Tor client
     let cfg = TorClientConfig::default();
     let client = TorClient::create_bootstrapped(cfg).await?;
-
     // Create a custom connector that routes through Tor
+    let tor_connector = service_fn(move |req: hyper::Uri| {
     let tor_connector = tower::service_fn(move |req: hyper::Uri| {
         let client = client.clone();
         let host = req.host().unwrap_or("").to_string();
