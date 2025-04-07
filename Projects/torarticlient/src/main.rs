@@ -4,6 +4,7 @@ use native_tls::Protocol;
 use tokio_native_tls::TlsConnector as TokioTlsConnector;
 use flate2::read::GzDecoder;
 use std::io::Read;
+use std::cmp::min;
 
 const DOMAIN: &'static str = "myinstafollow.com";
 const PORT: u16 = 443;
@@ -17,11 +18,10 @@ pub (crate) async fn main() -> anyhow::Result<()> {
     // Configure TLS for browser-like behavior
     tls_builder
         .min_protocol_version(Some(Protocol::Tlsv12))
-        // native_tls::Protocol doesn't have Tlsv13, so we don't set max version
-        // which means it will use the highest available version
         .use_sni(true)
-        // Enable ALPN for HTTP/2 support (mimicking browser)
-        .request_alpns(&["h2", "http/1.1"]);
+        // Disabling ALPN for now as it might be causing HTTP/2 negotiation issues
+        // .request_alpns(&["h2", "http/1.1"])
+        ;
     
     let tls_conn = tls_builder.build()?;
     let tls_conn = TokioTlsConnector::from(tls_conn);
@@ -43,10 +43,10 @@ pub (crate) async fn main() -> anyhow::Result<()> {
     // Send HTTP GET request with enhanced headers
     let request = format!(
         "GET /{PATH} HTTP/1.1\r\n\
-        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\r\n\
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8\r\n\
         Accept-Encoding: identity\r\n\
         Accept-Language: en-US,en;q=0.9\r\n\
-        Connection: keep-alive\r\n\
+        Connection: close\r\n\
         Host: {DOMAIN}\r\n\
         Sec-Ch-Ua: \"Chromium\";v=\"116\", \"Not)A;Brand\";v=\"24\", \"Google Chrome\";v=\"116\"\r\n\
         Sec-Ch-Ua-Mobile: ?0\r\n\
@@ -68,64 +68,81 @@ pub (crate) async fn main() -> anyhow::Result<()> {
     
     println!("Request sent");
 
-    // Read the complete response
+    // Read response in chunks to better analyze what we're receiving
     let mut buffer = Vec::new();
-    stream.read_to_end(&mut buffer).await?;
+    let mut chunk = [0u8; 4096];
     
-    println!("Received response of {} bytes", buffer.len());
-
-    // Process the response
-    if buffer.is_empty() {
-        println!("Empty response received");
-        return Ok(());
-    }
-
-    // Try to parse as HTTP response
-    if let Ok(response_text) = String::from_utf8(buffer.clone()) {
-        if response_text.starts_with("HTTP/") {
-            // Check if response is gzipped
-            if response_text.contains("Content-Encoding: gzip") {
-                println!("Response is gzipped, attempting to decode");
+    println!("Reading response in chunks:");
+    let mut total_bytes = 0;
+    
+    loop {
+        match stream.read(&mut chunk).await {
+            Ok(0) => {
+                println!("End of stream reached");
+                break;
+            },
+            Ok(n) => {
+                println!("Read {} bytes", n);
+                total_bytes += n;
                 
-                if let Some(body_start) = find_end_of_headers(&buffer) {
-                    let body_data = &buffer[body_start..];
-                    let mut decoder = GzDecoder::new(body_data);
-                    let mut decoded_data = Vec::new();
-                    
-                    if decoder.read_to_end(&mut decoded_data).is_ok() {
-                        println!("Decoded gzipped content:");
-                        if let Ok(decoded_text) = String::from_utf8(decoded_data) {
-                            println!("{}", decoded_text);
-                        } else {
-                            println!("Decoded content is not valid UTF-8");
-                        }
-                    } else {
-                        println!("Failed to decode gzipped content");
+                // Print first few bytes of this chunk
+                println!("Chunk hex preview:");
+                for byte in chunk.iter().take(min(n, 32)) {
+                    print!("{:02X} ", byte);
+                }
+                println!();
+                
+                // Check if chunk starts with HTTP
+                if n >= 4 && &chunk[0..4] == b"HTTP" {
+                    println!("Chunk appears to be HTTP");
+                }
+                
+                // Add to our buffer
+                buffer.extend_from_slice(&chunk[..n]);
+                
+                // Try to interpret as text
+                if let Ok(text) = std::str::from_utf8(&chunk[..n]) {
+                    if text.trim().len() > 0 {
+                        println!("Text preview: {}", 
+                                 if text.len() > 100 { &text[..100] } else { text });
                     }
                 }
-            } else {
-                // Not gzipped, print as-is
-                println!("Response (first 1000 chars):");
-                if response_text.len() > 1000 {
-                    println!("{}", &response_text[..1000]);
-                    println!("... [truncated]");
-                } else {
-                    println!("{}", response_text);
-                }
+            },
+            Err(e) => {
+                println!("Read error: {}", e);
+                break;
             }
-        } else {
-            println!("Response doesn't look like HTTP, showing first 100 bytes as hex:");
-            for byte in buffer.iter().take(100) {
+        }
+        
+        // Break after some reasonable amount to avoid infinite loops
+        if total_bytes > 1_000_000 {
+            println!("Reached maximum read size");
+            break;
+        }
+    }
+    
+    println!("Total bytes received: {}", total_bytes);
+    
+    // Analysis of the complete response
+    if !buffer.is_empty() {
+        // This looks like HTTP/2 or some other protocol data
+        // Try to identify what it might be
+        if buffer.len() >= 24 && buffer[0] == 0 && buffer[1] == 0 {
+            println!("Response appears to be a binary protocol (possibly HTTP/2)");
+            
+            // Print more detailed hex dump for debugging
+            println!("Full hex dump:");
+            for (i, byte) in buffer.iter().enumerate() {
+                if i % 16 == 0 {
+                    print!("\n{:04X}: ", i);
+                }
                 print!("{:02X} ", byte);
             }
             println!();
+            
+            // If this is HTTP/2, we might need a different approach
+            println!("Consider using a dedicated HTTP/2 client library for this connection");
         }
-    } else {
-        println!("Response is not valid UTF-8, showing first 100 bytes as hex:");
-        for byte in buffer.iter().take(100) {
-            print!("{:02X} ", byte);
-        }
-        println!();
     }
 
     Ok(())
