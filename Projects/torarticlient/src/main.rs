@@ -1,7 +1,8 @@
 use arti_client::*;
 use std::error::Error;
-use reqwest_impersonate as reqwest;
-use reqwest::impersonate::Impersonate;
+use reqwest;
+use hyper;
+use hyper_tls;
 
 const DOMAIN: &'static str = "myinstafollow.com";
 const PORT: u16 = 443;
@@ -25,13 +26,24 @@ pub(crate) async fn main() -> Result<(), Box<dyn Error>> {
         }
     });
 
-    // Build a reqwest client using Chrome impersonation and our Tor connector
+    // Build a reqwest client using our Tor connector and browser-like headers
+    let https = hyper_tls::HttpsConnector::from((tor_connector, native_tls::TlsConnector::new()?));
+    let client = hyper::Client::builder().build(https);
+
+    // Create a reqwest client with custom headers to simulate Chrome
     let reqwest_client = reqwest::Client::builder()
-        .impersonate(Impersonate::Chrome123)
-        .enable_ech_grease()
-        .permute_extensions()
+        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+        .default_headers({
+            let mut headers = reqwest::header::HeaderMap::new();
+            headers.insert("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7".parse().unwrap());
+            headers.insert("Accept-Language", "en-US,en;q=0.9".parse().unwrap());
+            headers.insert("Cache-Control", "max-age=0".parse().unwrap());
+            headers.insert("Sec-Ch-Ua", "\"Google Chrome\";v=\"123\", \"Not:A-Brand\";v=\"8\"".parse().unwrap());
+            headers.insert("Sec-Ch-Ua-Mobile", "?0".parse().unwrap());
+            headers.insert("Sec-Ch-Ua-Platform", "\"Windows\"".parse().unwrap());
+            headers
+        })
         .cookie_store(true)
-        .tcp_connector(tor_connector)
         .build()?;
 
     // Make the HTTP request through Tor
