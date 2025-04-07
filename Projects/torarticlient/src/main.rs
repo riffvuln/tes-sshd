@@ -3,7 +3,7 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use native_tls::TlsConnector;
 use tokio_native_tls::TlsConnector as TokioTlsConnector;
 
-const DOMAIN: &'static str = "icanhazip.com";
+const DOMAIN: &'static str = "myinstafollow.com";
 const PORT: u16 = 443;
 
 #[tokio::main]
