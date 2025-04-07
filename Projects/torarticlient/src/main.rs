@@ -49,6 +49,45 @@ pub (crate) async fn main() -> anyhow::Result<()> {
     // Read response
     let mut buffah = Vec::new();
     stream.read_to_end(&mut buffah).await?;
-    println!("Response: {}", String::from_utf8_lossy(&buffah));
+    
+    // Process the HTTP response
+    if let Ok(response_str) = String::from_utf8(buffah.clone()) {
+        // Split headers and body
+        if let Some(header_body_split) = response_str.split_once("\r\n\r\n") {
+            println!("=== HEADERS ===");
+            println!("{}", header_body_split.0);
+            println!("\n=== BODY ===");
+            println!("{}", header_body_split.1);
+        } else {
+            println!("Could not split headers and body");
+            println!("Raw response: {}", response_str);
+        }
+    } else {
+        // Handle binary data - show headers if possible
+        let mut headers_end = 0;
+        for i in 0..(buffah.len().saturating_sub(3)) {
+            if buffah[i] == b'\r' && buffah[i+1] == b'\n' && 
+               buffah[i+2] == b'\r' && buffah[i+3] == b'\n' {
+                headers_end = i + 4;
+                break;
+            }
+        }
+        
+        if headers_end > 0 {
+            println!("=== HEADERS ===");
+            println!("{}", String::from_utf8_lossy(&buffah[0..headers_end]));
+            println!("\n=== BINARY BODY ===");
+            println!("Length: {} bytes", buffah.len() - headers_end);
+            // Print first 100 bytes as hex for debugging
+            let preview_len = std::cmp::min(100, buffah.len() - headers_end);
+            for byte in &buffah[headers_end..headers_end + preview_len] {
+                print!("{:02X} ", byte);
+            }
+            println!("\n");
+        } else {
+            println!("Binary response: {} bytes", buffah.len());
+        }
+    }
+    
     Ok(())
 }
