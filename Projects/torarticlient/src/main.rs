@@ -3,9 +3,9 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use native_tls::TlsConnector;
 use tokio_native_tls::TlsConnector as TokioTlsConnector;
 
-const DOMAIN: &'static str = "myinstafollow.com";
+const DOMAIN: &'static str = "erhrkm6c4qzohi74yu7gb3bjgywecs3m6jyaok2hsw5qbozhv6ck32ad.onion";
 const PORT: u16 = 443;
-const PATH: &'static str = "free-tiktok-views";
+const PATH: &'static str = "";
 
 #[tokio::main]
 pub (crate) async fn main() -> anyhow::Result<()> {
