@@ -2,6 +2,8 @@ use arti_client::*;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use native_tls::TlsConnector;
 use tokio_native_tls::TlsConnector as TokioTlsConnector;
+use flate2::read::GzDecoder;
+use std::io::Read;
 
 const DOMAIN: &'static str = "erhrkm6c4qzohi74yu7gb3bjgywecs3m6jyaok2hsw5qbozhv6ck32ad.onion";
 const PORT: u16 = 80;
@@ -51,42 +53,63 @@ pub (crate) async fn main() -> anyhow::Result<()> {
     stream.read_to_end(&mut buffah).await?;
     
     // Process the HTTP response
-    if let Ok(response_str) = String::from_utf8(buffah.clone()) {
-        // Split headers and body
-        if let Some(header_body_split) = response_str.split_once("\r\n\r\n") {
-            println!("=== HEADERS ===");
-            println!("{}", header_body_split.0);
-            println!("\n=== BODY ===");
-            println!("{}", header_body_split.1);
+    // First find the headers
+    let mut headers_end = 0;
+    for i in 0..(buffah.len().saturating_sub(3)) {
+        if buffah[i] == b'\r' && buffah[i+1] == b'\n' && 
+           buffah[i+2] == b'\r' && buffah[i+3] == b'\n' {
+            headers_end = i + 4;
+            break;
+        }
+    }
+    
+    if headers_end > 0 {
+        // Parse headers
+        let headers_str = String::from_utf8_lossy(&buffah[0..headers_end]);
+        println!("=== HEADERS ===");
+        println!("{}", headers_str);
+        
+        // Check if content is gzipped
+        let is_gzipped = headers_str.to_lowercase().contains("content-encoding: gzip");
+        let body_bytes = &buffah[headers_end..];
+        
+        // Auto-detect gzip even if not in headers (gzip magic bytes: 1F 8B)
+        let is_likely_gzip = body_bytes.len() >= 2 && body_bytes[0] == 0x1F && body_bytes[1] == 0x8B;
+        
+        if is_gzipped || is_likely_gzip {
+            println!("\n=== DECOMPRESSING GZIPPED CONTENT ===");
+            let mut decoder = GzDecoder::new(&body_bytes[..]);
+            let mut decompressed = Vec::new();
+            
+            match decoder.read_to_end(&mut decompressed) {
+                Ok(_) => {
+                    match String::from_utf8(decompressed) {
+                        Ok(content) => {
+                            println!("=== DECOMPRESSED UTF-8 BODY ===");
+                            println!("{}", content);
+                        },
+                        Err(_) => {
+                            println!("Decompressed content is not valid UTF-8");
+                            println!("Showing as UTF-8 anyway (with replacements): {}", 
+                                     String::from_utf8_lossy(&decompressed));
+                        }
+                    }
+                },
+                Err(e) => {
+                    println!("Failed to decompress: {}", e);
+                    println!("Showing raw body as UTF-8 (may show garbage): {}", 
+                             String::from_utf8_lossy(body_bytes));
+                }
+            }
         } else {
-            println!("Could not split headers and body");
-            println!("Raw response: {}", response_str);
+            // Regular non-gzipped content
+            println!("\n=== BODY ===");
+            println!("{}", String::from_utf8_lossy(body_bytes));
         }
     } else {
-        // Handle binary data - show headers if possible
-        let mut headers_end = 0;
-        for i in 0..(buffah.len().saturating_sub(3)) {
-            if buffah[i] == b'\r' && buffah[i+1] == b'\n' && 
-               buffah[i+2] == b'\r' && buffah[i+3] == b'\n' {
-                headers_end = i + 4;
-                break;
-            }
-        }
-        
-        if headers_end > 0 {
-            println!("=== HEADERS ===");
-            println!("{}", String::from_utf8_lossy(&buffah[0..headers_end]));
-            println!("\n=== BINARY BODY ===");
-            println!("Length: {} bytes", buffah.len() - headers_end);
-            // Print first 100 bytes as hex for debugging
-            let preview_len = std::cmp::min(100, buffah.len() - headers_end);
-            for byte in &buffah[headers_end..headers_end + preview_len] {
-                print!("{:02X} ", byte);
-            }
-            println!("\n");
-        } else {
-            println!("Binary response: {} bytes", buffah.len());
-        }
+        // No headers found, treat as raw data
+        println!("No HTTP headers detected. Raw response:");
+        println!("{}", String::from_utf8_lossy(&buffah));
     }
     
     Ok(())

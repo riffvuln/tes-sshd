@@ -9,3 +9,4 @@ arti-client = { version = "0.29.0", features = ["full", "onion-service-client"] 
 tokio = { version = "1.44.2", features = ["full"] }
 native-tls = "0.2"
 tokio-native-tls = "0.3"
+flate2 = "1.0"
