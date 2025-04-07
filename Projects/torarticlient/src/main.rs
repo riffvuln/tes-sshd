@@ -30,6 +30,7 @@ pub (crate) async fn main() -> anyhow::Result<()> {
         Accept-Encoding: gzip, deflate, br, zstd\r\n\
         Accept-Language: en-US,en;q=0.5\r\n\
         Connection: keep-alive\r\n\
+        Cookie: twk_uuid_590644a264f23d19a89b007f=%7B%22uuid%22%3A%221.92PoATKhEhN3AplCJrnyL0qYFXTHnSZEhH47VOPSfeLL2L4aXbp6Kxnk2n9TeHhfmnoKBSNkTSL50rmxh0oHDdHIMX0hkqnesuSVKmDOPNCClmu6rw291CeNyZte%22%2C%22version%22%3A3%2C%22domain%22%3A%22myinstafollow.com%22%2C%22ts%22%3A1744013506976%7D; PHPSESSID=3b4f7a08a037b33e6aa03f5ace3175ac; colorMode=sun; TawkConnectionTime=0\r\n\
         Dnt: 1\r\n\
         Host: {DOMAIN}\r\n\
         Priority: u=0, i\r\n\
