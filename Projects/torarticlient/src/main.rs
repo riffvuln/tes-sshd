@@ -9,7 +9,7 @@ const PORT: u16 = 443;
 const PATH: &'static str = "free-tiktok-views";
 
 #[tokio::main]
-pub(crate) async fn main() -> Result<(), Box<dyn Error>> {
+pub(crate) async fn main() -> anyhow::Result<()> {
     // Set up Tor client
     let cfg = TorClientConfig::default();
     let client = TorClient::create_bootstrapped(cfg).await?;
