@@ -23,67 +23,24 @@ pub (crate) async fn main() -> anyhow::Result<()> {
     // Wrap the stream with TLS
     let mut stream = tls_conn.connect(DOMAIN, stream).await?;
 
-    // Send HTTP POST request with proper multipart/form-data
-    let boundary = "----WebKitFormBoundaryX9HaIp5orrOHMPJ1";
-    
-    // Create form data with proper formatting and no extra whitespace
-    let form_data = format!("\
---{boundary}\r\n\
-Content-Disposition: form-data; name=\"service\"\r\n\
-\r\n\
-6473\r\n\
---{boundary}\r\n\
-Content-Disposition: form-data; name=\"postlink\"\r\n\
-\r\n\
-https://www.tiktok.com/@smanike_official/video/7490470891281796359?is_from_webapp=1&sender_device=pc&web_id=7490506889974777351\r\n\
---{boundary}\r\n\
-Content-Disposition: form-data; name=\"tiktokviewsQuantity\"\r\n\
-\r\n\
-300\r\n\
---{boundary}\r\n\
-Content-Disposition: form-data; name=\"extended_user_agent\"\r\n\
-\r\n\
-Browser CodeName: Mozilla | \r\n\
-Browser Name: Netscape | \r\n\
-Browser Version: 5.0 (X11) | \r\n\
-Cookies Enabled: true | \r\n\
-Platform: Linux x86_64 | \r\n\
-User-agent header: Mozilla/5.0 (X11; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0 | \r\n\
-Language: en-US | \r\n\
-Screen Resolution: 1280x800 | \r\n\
-Color Depth: 24 | \r\n\
-Browser Window Size: 1260x271 | \r\n\
-Time Zone: Asia/Jakarta | \r\n\
-Languages: en-US, en | \r\n\
-Hardware Concurrency: 12 | \r\n\
-Device Memory: undefined GB | \r\n\
-Touch Support: false | \r\n\
-JavaScript Enabled: true\r\n\
---{boundary}--\r\n");
-
-    // Calculate content length correctly
-    let content_length = form_data.len();
-
-    // Create a well-formed HTTP request without extraneous whitespace
-    let request = format!("\
-POST /themes/vision/part/{PATH}/submitForm.php HTTP/1.1\r\n\
-Host: {DOMAIN}\r\n\
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0\r\n\
-Accept: */*\r\n\
-Accept-Language: en-US,en;q=0.5\r\n\
-Accept-Encoding: gzip, deflate, br\r\n\
-Referer: https://{DOMAIN}/{PATH}/\r\n\
-Content-Type: multipart/form-data; boundary={boundary}\r\n\
-Content-Length: {content_length}\r\n\
-Origin: https://{DOMAIN}\r\n\
-Connection: keep-alive\r\n\
-Cookie: PHPSESSID=3b4f7a08a037b33e6aa03f5ace3175ac\r\n\
-Sec-Fetch-Dest: empty\r\n\
-Sec-Fetch-Mode: cors\r\n\
-Sec-Fetch-Site: same-origin\r\n\
-\r\n\
-{form_data}");
-
+    // Send HTTP GET request
+    let request = format!(
+        "GET /{PATH} HTTP/1.1\r\n\
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\r\n\
+        Accept-Encoding: gzip, deflate, br\r\n\
+        Accept-Language: en-US,en;q=0.9\r\n\
+        Host: {DOMAIN}\r\n\
+        Sec-Ch-Ua: \"Chromium\";v=\"116\", \"Not)A;Brand\";v=\"24\", \"Google Chrome\";v=\"116\"\r\n\
+        Sec-Ch-Ua-Mobile: ?0\r\n\
+        Sec-Ch-Ua-Platform: \"Windows\"\r\n\
+        Sec-Fetch-Dest: document\r\n\
+        Sec-Fetch-Mode: navigate\r\n\
+        Sec-Fetch-Site: none\r\n\
+        Sec-Fetch-User: ?1\r\n\
+        Upgrade-Insecure-Requests: 1\r\n\
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36\r\n\
+        \r\n"
+    );
     stream.write_all(request.as_bytes()).await?;
 
     // Flush the stream to ensure the request is sent
