@@ -26,6 +26,9 @@ pub (crate) async fn main() -> anyhow::Result<()> {
     let request = format!("GET / HTTP/1.1\r\nHost: {DOMAIN}\r\nConnection: close\r\n\r\n");
     stream.write_all(request.as_bytes()).await?;
 
+    // Flush the stream to ensure the request is sent
+    stream.flush().await?;
+
     // Read response
     let mut buffah = Vec::new();
     stream.read_to_end(&mut buffah).await?;
