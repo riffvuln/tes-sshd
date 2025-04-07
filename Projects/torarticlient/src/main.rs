@@ -34,6 +34,7 @@ pub (crate) async fn main() -> anyhow::Result<()> {
         Dnt: 1\r\n\
         Host: {DOMAIN}\r\n\
         Priority: u=0, i\r\n\
+        Referer: https://www.google.com/\r\n\
         Sec-Fetch-Dest: document\r\n\
         Sec-Fetch-Mode: navigate\r\n\
         Sec-Fetch-Site: cross-site\r\n\
