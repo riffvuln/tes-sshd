@@ -68,7 +68,7 @@ pub (crate) async fn main() -> anyhow::Result<()> {
     
     println!("Request sent");
 
-    // Read response in chunks to better analyze what we're receiving
+    // Read response in chunks
     let mut buffer = Vec::new();
     let mut chunk = [0u8; 4096];
     
@@ -82,70 +82,117 @@ pub (crate) async fn main() -> anyhow::Result<()> {
                 break;
             },
             Ok(n) => {
-                println!("Read {} bytes", n);
                 total_bytes += n;
-                
-                // Print first few bytes of this chunk
-                println!("Chunk hex preview:");
-                for byte in chunk.iter().take(min(n, 32)) {
-                    print!("{:02X} ", byte);
-                }
-                println!();
-                
-                // Check if chunk starts with HTTP
-                if n >= 4 && &chunk[0..4] == b"HTTP" {
-                    println!("Chunk appears to be HTTP");
-                }
-                
-                // Add to our buffer
                 buffer.extend_from_slice(&chunk[..n]);
                 
-                // Try to interpret as text
-                if let Ok(text) = std::str::from_utf8(&chunk[..n]) {
-                    if text.trim().len() > 0 {
-                        println!("Text preview: {}", 
-                                 if text.len() > 100 { &text[..100] } else { text });
-                    }
-                }
+                // Just log byte count for cleaner output
+                println!("Read {} bytes (total: {})", n, total_bytes);
             },
             Err(e) => {
                 println!("Read error: {}", e);
                 break;
             }
         }
-        
-        // Break after some reasonable amount to avoid infinite loops
-        if total_bytes > 1_000_000 {
-            println!("Reached maximum read size");
-            break;
-        }
     }
     
     println!("Total bytes received: {}", total_bytes);
     
-    // Analysis of the complete response
+    // Process the complete HTTP response
     if !buffer.is_empty() {
-        // This looks like HTTP/2 or some other protocol data
-        // Try to identify what it might be
-        if buffer.len() >= 24 && buffer[0] == 0 && buffer[1] == 0 {
-            println!("Response appears to be a binary protocol (possibly HTTP/2)");
-            
-            // Print more detailed hex dump for debugging
-            println!("Full hex dump:");
-            for (i, byte) in buffer.iter().enumerate() {
-                if i % 16 == 0 {
-                    print!("\n{:04X}: ", i);
+        // Try to parse as HTTP response
+        if let Ok(full_response) = String::from_utf8(buffer.clone()) {
+            // Look for the HTTP header/body separator
+            if let Some(headers_end) = full_response.find("\r\n\r\n") {
+                let headers = &full_response[0..headers_end];
+                let body = &full_response[headers_end + 4..];
+                
+                println!("\n===== HTTP HEADERS =====");
+                println!("{}", headers);
+                
+                println!("\n===== CONTENT PREVIEW =====");
+                if body.len() > 1000 {
+                    println!("{}", &body[0..1000]);
+                    println!("... [truncated, total body size: {} bytes]", body.len());
+                } else {
+                    println!("{}", body);
                 }
-                print!("{:02X} ", byte);
+                
+                // Save the HTML to a file for easier analysis
+                let output_file = "response.html";
+                std::fs::write(output_file, body)?;
+                println!("\nFull HTML content saved to '{}'", output_file);
+                
+                // Check for common anti-bot measures in the response
+                check_anti_bot_measures(body);
+            } else {
+                println!("Could not find HTTP headers separator");
+                println!("Raw response preview: {}", 
+                    if full_response.len() > 200 { &full_response[0..200] } else { &full_response });
             }
-            println!();
-            
-            // If this is HTTP/2, we might need a different approach
-            println!("Consider using a dedicated HTTP/2 client library for this connection");
+        } else {
+            println!("Response is not valid UTF-8");
         }
     }
 
     Ok(())
+}
+
+// Helper function to check for common anti-bot protection mechanisms
+fn check_anti_bot_measures(content: &str) {
+    println!("\n===== PROTECTION ANALYSIS =====");
+    
+    // Check for common anti-bot solutions
+    if content.contains("Cloudflare") {
+        println!("⚠️ Cloudflare protection detected");
+    }
+    
+    if content.contains("CAPTCHA") || content.contains("captcha") {
+        println!("⚠️ CAPTCHA challenge detected");
+    }
+    
+    if content.contains("webdriver") || content.contains("navigator.") {
+        println!("⚠️ Browser fingerprinting detected (checking for automation)");
+    }
+    
+    if content.contains("document.cookie") {
+        println!("⚠️ Cookie-based verification detected");
+    }
+    
+    if content.contains("window.location") {
+        println!("⚠️ Redirect mechanism detected");
+    }
+    
+    if content.contains("hCaptcha") || content.contains("h-captcha") {
+        println!("⚠️ hCaptcha detected");
+    }
+    
+    if content.contains("recaptcha") || content.contains("grecaptcha") {
+        println!("⚠️ Google reCAPTCHA detected");
+    }
+    
+    if content.contains("PerimeterX") || content.contains("px-captcha") {
+        println!("⚠️ PerimeterX bot protection detected");
+    }
+    
+    if content.contains("Imperva") || content.contains("incapsula") {
+        println!("⚠️ Imperva/Incapsula protection detected");
+    }
+
+    // Look for JavaScript fingerprinting
+    let fingerprinting_patterns = [
+        "navigator.userAgent", "navigator.plugins", "navigator.platform",
+        "screen.width", "screen.height", "canvas.toDataURL", "webgl",
+        "AudioContext", "fontFamily", "userAgentCheck"
+    ];
+    
+    for pattern in fingerprinting_patterns {
+        if content.contains(pattern) {
+            println!("⚠️ Browser fingerprinting detected: {}", pattern);
+        }
+    }
+    
+    // If we didn't detect anything specific
+    println!("Note: The site may be using custom or obfuscated protection mechanisms");
 }
 
 // Helper function to find end of HTTP headers
