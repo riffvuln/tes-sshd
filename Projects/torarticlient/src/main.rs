@@ -83,7 +83,6 @@ pub (crate) async fn main() -> anyhow::Result<()> {
         \r\n\
         {form_data}",
         form_data.len()
-    )
     );
     stream.write_all(request.as_bytes()).await?;
 
