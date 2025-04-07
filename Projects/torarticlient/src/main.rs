@@ -18,7 +18,8 @@ pub (crate) async fn main() -> anyhow::Result<()> {
     // Configure TLS for browser-like behavior
     tls_builder
         .min_protocol_version(Some(Protocol::Tlsv12))
-        .max_protocol_version(Some(Protocol::Tlsv13))
+        // native_tls::Protocol doesn't have Tlsv13, so we don't set max version
+        // which means it will use the highest available version
         .use_sni(true)
         // Enable ALPN for HTTP/2 support (mimicking browser)
         .request_alpns(&["h2", "http/1.1"]);
