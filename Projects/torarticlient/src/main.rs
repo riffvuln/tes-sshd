@@ -83,15 +83,10 @@ pub (crate) async fn main() -> anyhow::Result<()> {
             
             match decoder.read_to_end(&mut decompressed) {
                 Ok(_) => {
-                    match String::from_utf8(decompressed) {
-                        Ok(content) => {
+                    match String::from_utf8_lossy(&decompressed).into_owned() {
+                        content => {
                             println!("=== DECOMPRESSED UTF-8 BODY ===");
                             println!("{}", content);
-                        },
-                        Err(_) => {
-                            println!("Decompressed content is not valid UTF-8");
-                            println!("Showing as UTF-8 anyway (with replacements): {}", 
-                                     String::from_utf8_lossy(&decompressed));
                         }
                     }
                 },
