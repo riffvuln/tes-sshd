@@ -31,15 +31,14 @@ pub (crate) async fn main() -> anyhow::Result<()> {
         Accept-Language: en-US,en;q=0.9\r\n\
         Host: {DOMAIN}\r\n\
         Sec-Ch-Ua: \"Chromium\";v=\"116\", \"Not)A;Brand\";v=\"24\", \"Google Chrome\";v=\"116\"\r\n\
-        Priority: u=0, i\r\n\
-        Referer: https://www.google.com/\r\n\
+        Sec-Ch-Ua-Mobile: ?0\r\n\
+        Sec-Ch-Ua-Platform: \"Windows\"\r\n\
         Sec-Fetch-Dest: document\r\n\
         Sec-Fetch-Mode: navigate\r\n\
-        Sec-Fetch-Site: cross-site\r\n\
+        Sec-Fetch-Site: none\r\n\
         Sec-Fetch-User: ?1\r\n\
-        Sec-Gpc: 1\r\n\
         Upgrade-Insecure-Requests: 1\r\n\
-        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0\r\n\
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36\r\n\
         \r\n"
     );
     stream.write_all(request.as_bytes()).await?;
