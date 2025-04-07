@@ -20,7 +20,7 @@ const CONNECTION_TYPE: ConnectionType = ConnectionType::WithoutTLS;
 pub(crate) async fn main() -> anyhow::Result<()> {
     // Set up Tor client
     let cfg = TorClientConfig::default();
-    let client = TorClient::create_bootstrapped(cfg).await?;
+    let client = TorClient::<arti_client::DataStream>::create_bootstrapped(cfg).await?;
     
     // Connect using the selected connection type
     match CONNECTION_TYPE {
@@ -32,7 +32,7 @@ pub(crate) async fn main() -> anyhow::Result<()> {
 }
 
 // Function for TLS connection
-async fn connect_with_tls(client: TorClient) -> anyhow::Result<()> {
+async fn connect_with_tls(client: TorClient<arti_client::DataStream>) -> anyhow::Result<()> {
     // Set up native TLS configuration
     let tls_conn = TlsConnector::new()?;
     let tls_conn = TokioTlsConnector::from(tls_conn);
@@ -50,7 +50,7 @@ async fn connect_with_tls(client: TorClient) -> anyhow::Result<()> {
 }
 
 // Function for non-TLS connection
-async fn connect_without_tls(client: TorClient) -> anyhow::Result<()> {
+async fn connect_without_tls(client: TorClient<arti_client::DataStream>) -> anyhow::Result<()> {
     // Make stream to the target domain with tor (without TLS)
     let mut stream = client.connect((DOMAIN, PORT)).await?;
     
