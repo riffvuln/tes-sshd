@@ -10,18 +10,18 @@ const PATH: &'static str = "";
 #[tokio::main]
 pub (crate) async fn main() -> anyhow::Result<()> {
     // Set up native TLS configuration
-    let tls_conn = TlsConnector::new()?;
-    let tls_conn = TokioTlsConnector::from(tls_conn);
+    // let tls_conn = TlsConnector::new()?;
+    // let tls_conn = TokioTlsConnector::from(tls_conn);
 
     // Set up Tor client
     let cfg = TorClientConfig::default();
     let client = TorClient::create_bootstrapped(cfg).await?;
     
     // Make stream to the target domain with tor
-    let stream = client.connect((DOMAIN, PORT)).await?;
+    let mut stream = client.connect((DOMAIN, PORT)).await?;
 
     // Wrap the stream with TLS
-    let mut stream = tls_conn.connect(DOMAIN, stream).await?;
+    // let mut stream = tls_conn.connect(DOMAIN, stream).await?;
 
     // Send HTTP GET request
     let request = format!(
