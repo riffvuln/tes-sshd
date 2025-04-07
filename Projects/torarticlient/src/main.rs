@@ -26,19 +26,19 @@ pub (crate) async fn main() -> anyhow::Result<()> {
     // Send HTTP GET request
     let boundary = "----geckoformboundary1537beeb0c2e087b744da49b004303b9";
     let form_data = format!(
-        "{boundary}\r\n\
+        "--{boundary}\r\n\
         Content-Disposition: form-data; name=\"service\"\r\n\
         \r\n\
         6473\r\n\
-        {boundary}\r\n\
+        --{boundary}\r\n\
         Content-Disposition: form-data; name=\"postlink\"\r\n\
         \r\n\
         https://www.tiktok.com/@smanike_official/video/7490470891281796359?is_from_webapp=1&sender_device=pc&web_id=7490506889974777351\r\n\
-        {boundary}\r\n\
+        --{boundary}\r\n\
         Content-Disposition: form-data; name=\"tiktokviewsQuantity\"\r\n\
         \r\n\
         300\r\n\
-        {boundary}\r\n\
+        --{boundary}\r\n\
         Content-Disposition: form-data; name=\"extended_user_agent\"\r\n\
         \r\n\
                 Browser CodeName: Mozilla | \r\n\
@@ -57,9 +57,11 @@ pub (crate) async fn main() -> anyhow::Result<()> {
                 Device Memory: undefined GB | \r\n\
                 Touch Support: false | \r\n\
                 JavaScript Enabled: true\r\n\
-            \r\n\
-        {boundary}--\r\n"
+        --{boundary}--\r\n"
     );
+
+    // Calculate the content length correctly
+    let content_length = form_data.len();
 
     let request = format!(
         "POST /themes/vision/part/free-tiktok-views/submitForm.php HTTP/1.1\r\n\
@@ -68,10 +70,10 @@ pub (crate) async fn main() -> anyhow::Result<()> {
         Accept: */*\r\n\
         Accept-Language: en-US,en;q=0.5\r\n\
         Accept-Encoding: gzip, deflate, br, zstd\r\n\
-        Referer: https://myinstafollow.com/free-tiktok-views/\r\n\
+        Referer: https://{DOMAIN}/{PATH}/\r\n\
         Content-Type: multipart/form-data; boundary={boundary}\r\n\
-        Content-Length: {}\r\n\
-        Origin: https://myinstafollow.com\r\n\
+        Content-Length: {content_length}\r\n\
+        Origin: https://{DOMAIN}\r\n\
         DNT: 1\r\n\
         Sec-GPC: 1\r\n\
         Connection: keep-alive\r\n\
@@ -81,8 +83,7 @@ pub (crate) async fn main() -> anyhow::Result<()> {
         Sec-Fetch-Site: same-origin\r\n\
         Priority: u=4\r\n\
         \r\n\
-        {form_data}",
-        form_data.len()
+        {form_data}"
     );
     stream.write_all(request.as_bytes()).await?;
 
