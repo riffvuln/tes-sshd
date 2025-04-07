@@ -4200,7 +4200,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "arti-client",
- "flate2",
  "native-tls",
  "tokio",
  "tokio-native-tls",
