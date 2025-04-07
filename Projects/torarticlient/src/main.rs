@@ -1,14 +1,13 @@
 use arti_client::*;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use native_tls::{TlsConnector, Protocol};
+use native_tls::Protocol;
 use tokio_native_tls::TlsConnector as TokioTlsConnector;
+use flate2::read::GzDecoder;
+use std::io::Read;
 
 const DOMAIN: &'static str = "myinstafollow.com";
 const PORT: u16 = 443;
 const PATH: &'static str = "free-tiktok-views";
-
-// Firefox-like ciphers (mimicking NSS)
-const FIREFOX_CIPHERS: &str = "TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_256_GCM_SHA384:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384";
 
 #[tokio::main]
 pub (crate) async fn main() -> anyhow::Result<()> {
@@ -34,14 +33,18 @@ pub (crate) async fn main() -> anyhow::Result<()> {
     // Make stream to the target domain with tor
     let stream = client.connect((DOMAIN, PORT)).await?;
 
+    println!("Connected to target through Tor");
+
     // Wrap the stream with TLS
     let mut stream = tls_conn.connect(DOMAIN, stream).await?;
+    
+    println!("TLS connection established");
 
     // Send HTTP GET request with enhanced headers
     let request = format!(
         "GET /{PATH} HTTP/1.1\r\n\
         Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\r\n\
-        Accept-Encoding: gzip, deflate, br\r\n\
+        Accept-Encoding: identity\r\n\
         Accept-Language: en-US,en;q=0.9\r\n\
         Connection: keep-alive\r\n\
         Host: {DOMAIN}\r\n\
@@ -62,32 +65,69 @@ pub (crate) async fn main() -> anyhow::Result<()> {
 
     // Flush the stream to ensure the request is sent
     stream.flush().await?;
-
-    // Read response with timeout to handle possible streaming responses
-    let mut buffah = Vec::new();
-    let mut chunk = [0u8; 4096];
     
-    loop {
-        match tokio::time::timeout(
-            std::time::Duration::from_secs(10), 
-            stream.read(&mut chunk)
-        ).await {
-            Ok(Ok(0)) => break, // EOF
-            Ok(Ok(n)) => {
-                buffah.extend_from_slice(&chunk[..n]);
-                // If we detect end of HTTP response, break
-                if let Some(body_pos) = find_end_of_headers(&buffah) {
-                    if buffah.len() > body_pos && buffah.len() > body_pos + 4 {
-                        break;
+    println!("Request sent");
+
+    // Read the complete response
+    let mut buffer = Vec::new();
+    stream.read_to_end(&mut buffer).await?;
+    
+    println!("Received response of {} bytes", buffer.len());
+
+    // Process the response
+    if buffer.is_empty() {
+        println!("Empty response received");
+        return Ok(());
+    }
+
+    // Try to parse as HTTP response
+    if let Ok(response_text) = String::from_utf8(buffer.clone()) {
+        if response_text.starts_with("HTTP/") {
+            // Check if response is gzipped
+            if response_text.contains("Content-Encoding: gzip") {
+                println!("Response is gzipped, attempting to decode");
+                
+                if let Some(body_start) = find_end_of_headers(&buffer) {
+                    let body_data = &buffer[body_start..];
+                    let mut decoder = GzDecoder::new(body_data);
+                    let mut decoded_data = Vec::new();
+                    
+                    if decoder.read_to_end(&mut decoded_data).is_ok() {
+                        println!("Decoded gzipped content:");
+                        if let Ok(decoded_text) = String::from_utf8(decoded_data) {
+                            println!("{}", decoded_text);
+                        } else {
+                            println!("Decoded content is not valid UTF-8");
+                        }
+                    } else {
+                        println!("Failed to decode gzipped content");
                     }
                 }
-            },
-            Ok(Err(e)) => return Err(e.into()),
-            Err(_) => break, // Timeout
+            } else {
+                // Not gzipped, print as-is
+                println!("Response (first 1000 chars):");
+                if response_text.len() > 1000 {
+                    println!("{}", &response_text[..1000]);
+                    println!("... [truncated]");
+                } else {
+                    println!("{}", response_text);
+                }
+            }
+        } else {
+            println!("Response doesn't look like HTTP, showing first 100 bytes as hex:");
+            for byte in buffer.iter().take(100) {
+                print!("{:02X} ", byte);
+            }
+            println!();
         }
+    } else {
+        println!("Response is not valid UTF-8, showing first 100 bytes as hex:");
+        for byte in buffer.iter().take(100) {
+            print!("{:02X} ", byte);
+        }
+        println!();
     }
-    
-    println!("Response: {}", String::from_utf8_lossy(&buffah));
+
     Ok(())
 }
 
