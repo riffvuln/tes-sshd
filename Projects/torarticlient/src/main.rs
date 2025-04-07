@@ -1,5 +1,3 @@
-use std::default;
-
 use arti_client::*;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use native_tls::TlsConnector;
@@ -16,7 +14,7 @@ pub (crate) async fn main() -> anyhow::Result<()> {
 
     // Set up Tor client
     let cfg = TorClientConfig {
-        ..default()
+        ..Default::default(),
     };
     let client = TorClient::create_bootstrapped(cfg).await?;
     
