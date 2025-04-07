@@ -1,3 +1,5 @@
+use std::default;
+
 use arti_client::*;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use native_tls::TlsConnector;
@@ -13,7 +15,9 @@ pub (crate) async fn main() -> anyhow::Result<()> {
     let tls_conn = TokioTlsConnector::from(tls_conn);
 
     // Set up Tor client
-    let cfg = TorClientConfig::default();
+    let cfg = TorClientConfig {
+        ..default()
+    };
     let client = TorClient::create_bootstrapped(cfg).await?;
     
     // Make stream to the target domain with tor
