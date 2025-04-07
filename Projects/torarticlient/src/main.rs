@@ -3,8 +3,9 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use native_tls::TlsConnector;
 use tokio_native_tls::TlsConnector as TokioTlsConnector;
 
-const DOMAIN: &'static str = "httpbin.io";
+const DOMAIN: &'static str = "myinstafollow.com";
 const PORT: u16 = 443;
+const PATH: &'static str = "free-tiktok-views";
 
 #[tokio::main]
 pub (crate) async fn main() -> anyhow::Result<()> {
@@ -24,7 +25,7 @@ pub (crate) async fn main() -> anyhow::Result<()> {
 
     // Send HTTP GET request
     let request = format!(
-        "GET /headers HTTP/1.1\r\n\
+        "GET /{PATH} HTTP/1.1\r\n\
         Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n\
         Accept-Encoding: gzip, deflate, br, zstd\r\n\
         Accept-Language: en-US,en;q=0.5\r\n\
