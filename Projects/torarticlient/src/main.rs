@@ -23,7 +23,13 @@ pub (crate) async fn main() -> anyhow::Result<()> {
     let mut stream = tls_conn.connect(DOMAIN, stream).await?;
 
     // Send HTTP GET request
-    let request = format!("GET /headers HTTP/1.1\r\nHost: {DOMAIN}\r\nConnection: close\r\n\r\n");
+    let request = format!(
+        "GET /headers HTTP/1.1\r\n\
+        Host: {DOMAIN}\r\n\
+        Connection: close\r\n\
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n\
+        \r\n"
+    );
     stream.write_all(request.as_bytes()).await?;
 
     // Flush the stream to ensure the request is sent
