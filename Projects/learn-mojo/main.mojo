@@ -28,5 +28,5 @@ def print_hello():
 
 fn greet(name: String) -> String:
     if name == "":
-        raise Error("Name is Empty!")
+        Error("Name is Empty!").raise()
     return "Hello, " + name + "!"
