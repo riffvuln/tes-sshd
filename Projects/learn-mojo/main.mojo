@@ -23,5 +23,5 @@ def loop():
 
 def print_hello():
     var text: String = String(",")
-                        .join("Hello", "World")
+                        .join("Hello", "World") # Chain function calls accross multiple lines.
     print(text)
