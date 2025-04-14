@@ -7,6 +7,7 @@ def main():
     """from now only function calling"""
     loop() # Call the loop function
     print_hello()
+    print(greet("Rifai"))
 
     """Blocks and Statements in Mojo"""
     # - Blocks: Code sections enclosed by : that define scope
