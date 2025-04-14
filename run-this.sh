@@ -7,4 +7,10 @@ install_rust() {
   rustup toolchain install nightly
 }
 
+install_mojo() {
+  curl -ssL https://magic.modular.com/cde5b750-6171-4f22-8fca-63e11fe34ea4 | bash
+  source /root/.bashrc
+}
+
 install_rust
+install_mojo
