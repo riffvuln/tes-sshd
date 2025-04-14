@@ -1,3 +1,4 @@
 def main():
-    print("Halo Dunia!")
-    print("Hello World!")
+    var name: String = input("Enter your name: ")
+    var greeting: String = "Hello, " + name + "!"
+    print(greeting)
