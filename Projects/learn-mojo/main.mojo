@@ -26,7 +26,7 @@ def print_hello():
                         .join("Hello", "World") # Chain function calls accross multiple lines.
     print(text)
 
-fn greet(name: String) raises:
+fn greet(name: String) raises -> String:
     if (name == ""):
         raise Error("Name is empty")
     return "Hello, " + name + "!"
