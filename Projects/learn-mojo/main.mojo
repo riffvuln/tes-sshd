@@ -8,13 +8,12 @@ def main():
     loop() # Call the loop function
     print_hello()
 
-    # Blocks and Statements in Mojo:
-    # - Blocks: Code sections enclosed by {} that define scope
+    """Blocks and Statements in Mojo"""
+    # - Blocks: Code sections enclosed by : that define scope
     # - Statements: Individual instructions like:
     #   * Variable declarations/assignments
     #   * Control flow (if, while, for)
     #   * Function calls and returns
-    # - Unlike Python, Mojo uses braces for block definition, not indentation
 def loop():
     for x in range(5):
         if x%2 == 0:
