@@ -4,6 +4,7 @@ def main():
     # greeting = 5 # This would cause a type error
     print(greeting)
     loop() # Call the loop function
+    print_hello()
 
 # Function to demonstrate a simple loop
 # and conditional statements
@@ -14,3 +15,8 @@ def loop():
             print(x, "is even")
         else:
             print(x, "is odd")
+
+def print_hello():
+    var text: String = String(",")
+                        .join("Hello", "World")
+    print(text)
