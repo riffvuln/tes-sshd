@@ -31,7 +31,8 @@ async fn cpanel(url: &str, client: &Client) -> bool {
 
     // Add https:// to the beginning of the URL if it's not already there
     if !url.starts_with("https://") {
-        url = &format!("https://{}", url);
+        let https_url = format!("https://{}", url);
+        url = &https_url;
     }
 
     // Build the correct url
