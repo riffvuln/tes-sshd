@@ -1,4 +1,4 @@
-use cploit::{cpcrack::{self, run_crack}, extractcpanel, extractdb, lazyconfig};
+use cploit::{lazyconfig, extractdb, extractcpanel, cpcrack};
 
 fn print_banner() {
     println!(" ██████╗  █████╗ ");
@@ -35,7 +35,7 @@ fn main() {
             let _ = extractcpanel::extract_cpanel();
         }
         4 => {
-            run_crack();
+            cpcrack::run_crack();
         }
         _ => {
             println!("Invalid choice, please try again.");
