@@ -24,3 +24,5 @@ http://beautyartsalonandspa.com/.env
 http://liveframetheshow.tv/.env
 http://graintechbd.com/.env
 http://londonenglishschool.co.uk/.env
+http://mahmoudebrahimi.com/.vscode/sftp.json
+http://mahmoudebrahimi.com/sftp-config.json
