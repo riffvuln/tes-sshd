@@ -44,6 +44,7 @@ async fn cpanel(url: &str, client: &Client) -> bool {
     // Make request
     match client.post(&full_url).form(&params).send().await {
         Ok(response) => {
+            let status = response.status();
             match response.text().await {
                 Ok(text) => {
                     if text.contains("status") && text.contains("security_token") {
@@ -76,7 +77,7 @@ async fn cpanel(url: &str, client: &Client) -> bool {
                     } else {
                         println!(
                             "{}",
-                            format!("[Login Failed] {} message \"{}\"", url, response.status())
+                            format!("[Login Failed] {} message \"{}\"", url, status)
                                 .red()
                         );
                         false
@@ -148,7 +149,7 @@ fn main() {
     // Print results and elapsed time
     println!("{:?}", results);
     println!(
-        "Elapsed time: {:.2f} seconds",
+        "Elapsed time: {:.2} seconds",
         start_time.elapsed().as_secs_f64()
     );
 }
