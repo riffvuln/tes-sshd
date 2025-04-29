@@ -1,4 +1,4 @@
-use cploit::{lazyconfig, extractdb, extractcpanel, cpanelcrack};
+use cploit::{lazyconfig, extractdb, extractcpanel};
 
 fn print_banner() {
     println!(" ██████╗  █████╗ ");
