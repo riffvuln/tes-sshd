@@ -1,0 +1,9 @@
+/assets/filemanager/dialog.php
+/public/javascript/filemanager/dialog.php
+/public/scripts/filemanager/dialog.php
+/media/filemanager/dialog.php
+/class/phpformbuilder/plugins/filemanager/dialog.php
+/filemanager/dialog.php
+/assets/plugins/filemanager/dialog.php
+/admin/filemanager/dialog.php
+/resources/js/tinymce/plugins/filemanager/dialog.php

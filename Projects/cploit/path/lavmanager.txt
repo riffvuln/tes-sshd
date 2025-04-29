@@ -1,0 +1,4 @@
+/vendor/laravel-filemanager
+/public/laravel-filemanager
+/laravel-filemanager
+/app/laravel-filemanager

@@ -1,0 +1,7 @@
+/.env
+/wp-config.php.bak
+/wp-config.php~
+/phpinfo.php
+/info.php
+/.vscode/sftp.json
+/sftp-config.json
