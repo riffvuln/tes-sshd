@@ -1,5 +1,4 @@
 use colored::Colorize;
-use rayon::prelude::*;
 use reqwest::{Client, header};
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufRead, BufReader, Write};
@@ -68,9 +67,12 @@ impl LazyConfig {
     }
 
     pub fn run(&self) -> Result<(), Box<dyn Error>> {
-        // Create a tokio runtime
+        // Create a tokio runtime with specified thread count
         let rt = Runtime::new()?;
-        
+        rt.block_on(self.run_async())
+    }
+
+    async fn run_async(&self) -> Result<(), Box<dyn Error>> {
         // Set up a Reqwest client with rustls-tls
         let client = reqwest::Client::builder()
             .danger_accept_invalid_certs(true)
@@ -81,35 +83,32 @@ impl LazyConfig {
         let paths = Arc::new(self.paths.clone());
         let user_agents = Arc::new(self.user_agents.clone());
 
-        // Use Rayon for parallelization
-        rayon::ThreadPoolBuilder::new()
-            .num_threads(self.pool_size)
-            .build_global()?;
+        // Create a bounded semaphore to limit concurrent tasks
+        let semaphore = Arc::new(tokio::sync::Semaphore::new(self.pool_size));
 
-        // Process sites in chunks to avoid Tokio reactor issues
-        let chunk_size = 10;
-        for chunk in self.websites.chunks(chunk_size) {
-            rt.block_on(async {
-                let mut handles = Vec::new();
-                
-                for site in chunk {
-                    let site = site.clone();
-                    let client = client.clone();
-                    let paths = paths.clone();
-                    let user_agents = user_agents.clone();
-                    
-                    let handle = tokio::spawn(async move {
-                        Self::check_site(&site, &paths, &client, &user_agents).await;
-                    });
-                    
-                    handles.push(handle);
-                }
-                
-                // Wait for all tasks in this chunk to complete
-                for handle in handles {
-                    let _ = handle.await;
-                }
+        // Create tasks for each website
+        let mut handles = Vec::new();
+        
+        for site in &self.websites {
+            let site = site.clone();
+            let client = client.clone();
+            let paths = paths.clone();
+            let user_agents = user_agents.clone();
+            let semaphore = semaphore.clone();
+            
+            let handle = tokio::spawn(async move {
+                // Acquire permit from semaphore before processing
+                let _permit = semaphore.acquire().await.unwrap();
+                Self::check_site(&site, &paths, &client, &user_agents).await;
+                // Permit is released automatically when _permit goes out of scope
             });
+            
+            handles.push(handle);
+        }
+        
+        // Wait for all tasks to complete
+        for handle in handles {
+            let _ = handle.await;
         }
 
         Ok(())
