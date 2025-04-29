@@ -1,4 +1,4 @@
-use cploit::{lazyconfig, extractdb, extractcpanel};
+use cploit::{lazyconfig, extractdb, extractcpanel, cpanelcrack};
 
 fn print_banner() {
     println!(" ██████╗  █████╗ ");
@@ -34,10 +34,11 @@ fn main() {
         3 => {
             let _ = extractcpanel::extract_cpanel();
         }
-        4 => {
-            println!("You chose option 4");
-            // Call the function for option 4
-        }
+        // 4 => {
+        //     let _ = tokio::runtime::Runtime::new()
+        //         .expect("Failed to create Tokio runtime")
+        //         .block_on(cpanelcrack::crack_cpanel());
+        // }
         _ => {
             println!("Invalid choice, please try again.");
         }

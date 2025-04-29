@@ -43,9 +43,16 @@ impl LazyConfig {
         io::stdin().read_line(&mut pool_size)?;
         let pool_size = pool_size.trim().parse::<usize>().unwrap_or(10);
 
-        let user_agents = BufReader::new(File::open("user-agent.txt")?)
-            .lines()
-            .collect::<Result<Vec<String>, _>>()?;
+        // Try to load user agents, use default if file not found
+        let user_agents = match File::open("user-agent.txt") {
+            Ok(file) => BufReader::new(file)
+                .lines()
+                .collect::<Result<Vec<String>, _>>()?,
+            Err(_) => {
+                println!("{}", "[!] user-agent.txt not found, using default user agent".yellow());
+                vec!["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36".to_string()]
+            }
+        };
 
         // Ensure output directory exists
         if !Path::new("output").exists() {
