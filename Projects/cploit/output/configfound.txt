@@ -1,1 +1,2 @@
 http://123coi.com/.env
+http://3gdigitalcrm.com/.env
