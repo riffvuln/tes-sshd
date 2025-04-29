@@ -3,7 +3,6 @@ use rayon::prelude::*;
 use reqwest::Client;
 use std::fs::{create_dir_all, File, OpenOptions};
 use std::io::{self, BufRead, BufReader, Write};
-use std::path::Path;
 use std::time::{Duration, Instant};
 use tokio::runtime::Runtime;
 
