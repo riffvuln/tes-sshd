@@ -110,17 +110,24 @@ fn checker(url: &str) -> bool {
     rt.block_on(cpanel(url, &client))
 }
 
-/// Run the cPanel cracker with a given filename
+/// Run the cPanel cracker
 /// 
-/// # Arguments
-/// 
-/// * `filename` - Path to the file containing URLs to check
+/// This function will prompt the user for an input file and then
+/// process the URLs in the file to check for cPanel logins
 /// 
 /// # Returns
 /// 
 /// A vector of booleans indicating which URLs were successfully cracked
-pub fn run_crack(filename: &str) -> Vec<bool> {
-    println!("[+] Processing file: {}", filename);
+pub fn run_crack() -> Vec<bool> {
+    println!("[+] submit file: ");
+    
+    // Read filename from stdin
+    let mut filename = String::new();
+    io::stdin()
+        .read_line(&mut filename)
+        .expect("Failed to read input");
+    
+    let filename = filename.trim();
     
     // Read file content
     let list_data = match File::open(filename) {
