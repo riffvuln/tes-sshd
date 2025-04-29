@@ -110,16 +110,17 @@ fn checker(url: &str) -> bool {
     rt.block_on(cpanel(url, &client))
 }
 
-fn main() {
-    println!("[+] submit file: ");
-    
-    // Read filename from stdin
-    let mut filename = String::new();
-    io::stdin()
-        .read_line(&mut filename)
-        .expect("Failed to read input");
-    
-    let filename = filename.trim();
+/// Run the cPanel cracker with a given filename
+/// 
+/// # Arguments
+/// 
+/// * `filename` - Path to the file containing URLs to check
+/// 
+/// # Returns
+/// 
+/// A vector of booleans indicating which URLs were successfully cracked
+pub fn run_crack(filename: &str) -> Vec<bool> {
+    println!("[+] Processing file: {}", filename);
     
     // Read file content
     let list_data = match File::open(filename) {
@@ -135,7 +136,7 @@ fn main() {
     
     if list_data.is_empty() {
         println!("No data to process.");
-        return;
+        return Vec::new();
     }
     
     // Start timer
@@ -147,10 +148,11 @@ fn main() {
         .map(|url| checker(url))
         .collect();
     
-    // Print results and elapsed time
-    println!("{:?}", results);
+    // Print elapsed time
     println!(
         "Elapsed time: {:.2} seconds",
         start_time.elapsed().as_secs_f64()
     );
+    
+    results
 }
