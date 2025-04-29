@@ -86,25 +86,33 @@ impl LazyConfig {
             .num_threads(self.pool_size)
             .build_global()?;
 
-        rt.block_on(async {
-            let tasks: Vec<_> = self.websites.par_iter().map(|site| {
-                let site = site.clone();
-                let client = client.clone();
-                let paths = paths.clone();
-                let user_agents = user_agents.clone();
+        // Process sites in chunks to avoid Tokio reactor issues
+        let chunk_size = 10;
+        for chunk in self.websites.chunks(chunk_size) {
+            rt.block_on(async {
+                let mut handles = Vec::new();
                 
-                tokio::spawn(async move {
-                    Self::check_site(&site, &paths, &client, &user_agents).await;
-                })
-            }).collect();
+                for site in chunk {
+                    let site = site.clone();
+                    let client = client.clone();
+                    let paths = paths.clone();
+                    let user_agents = user_agents.clone();
+                    
+                    let handle = tokio::spawn(async move {
+                        Self::check_site(&site, &paths, &client, &user_agents).await;
+                    });
+                    
+                    handles.push(handle);
+                }
+                
+                // Wait for all tasks in this chunk to complete
+                for handle in handles {
+                    let _ = handle.await;
+                }
+            });
+        }
 
-            // Wait for all tasks to complete
-            for task in tasks {
-                let _ = task.await;
-            }
-
-            Ok(())
-        })
+        Ok(())
     }
 
     async fn check_site(
