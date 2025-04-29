@@ -27,13 +27,14 @@ async fn cpanel(url: &str, client: &Client) -> bool {
         return false;
     }
 
-    let (mut url, username, password) = (parts[0], parts[1], parts[2]);
-
+    let (base_url, username, password) = (parts[0].to_string(), parts[1], parts[2]);
+    
     // Add https:// to the beginning of the URL if it's not already there
-    if !url.starts_with("https://") {
-        let https_url = format!("https://{}", url);
-        url = &https_url;
-    }
+    let url = if !base_url.starts_with("https://") {
+        format!("https://{}", base_url)
+    } else {
+        base_url
+    };
 
     // Build the correct url
     let full_url = format!("{}:2083", url);
