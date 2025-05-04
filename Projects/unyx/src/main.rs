@@ -94,11 +94,12 @@ impl RatApp {
         new_cursor_pos.clamp(0, self.input.chars().count())
     }
 
-    fn run(&mut self, terminal: DefaultTerminal) -> Result<()> {
+    fn run(&mut self, mut terminal: DefaultTerminal) -> Result<()> {
         loop {
             terminal.draw(|frame| {
                 self.draw(frame);
             });
+
         }
     }
 
