@@ -120,6 +120,16 @@ impl RatApp {
                 ],
                 Style::default().add_modifier(Modifier::RAPID_BLINK),
             ),
+            InputMode::Insert => (
+                vec![
+                    "Press ".into(),
+                    "Esc".bold(),
+                    " to exit, ".into(),
+                    "Enter".bold(),
+                    " to send.".bold(),
+                ],
+                Style::default(),
+            ),
         }
     }
 }
