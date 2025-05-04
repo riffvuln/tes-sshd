@@ -90,7 +90,7 @@ impl RatApp {
     pub fn run(&mut self, mut terminal: DefaultTerminal) -> Result<()> {
         
         let mut last_draw = Instant::now();
-        let draw_interval = Duration::from_secs(1);
+        let draw_interval = Duration::from_millis(200);
         
         loop {
             let now = Instant::now();
