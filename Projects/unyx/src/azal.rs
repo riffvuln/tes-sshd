@@ -19,7 +19,14 @@ pub async fn start_azalea(
     let handle = |bot: Client, event: Event, state: State| -> color_eyre::Result<()> {
         match event {
             Event::Chat(m) => {
-                println!("{}", m.message().to_ansi());
+                tx_log
+                    .send(ConsoleType::ServerMsg(format!(
+                        "[{}] {}: {}",
+                        m.timestamp,
+                        m.sender,
+                        m.message
+                    )))
+                    .unwrap();
             }
             _ => {}
         }
