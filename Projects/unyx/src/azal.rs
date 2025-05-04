@@ -5,7 +5,7 @@ use azalea::prelude::*;
 #[derive(Default, Clone, Component)]
 pub struct State {}
 
-enum ConsoleType {
+pub enum ConsoleType {
     Botlog(String),
     ServerMsg(String),
 }
