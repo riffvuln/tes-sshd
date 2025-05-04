@@ -1,4 +1,7 @@
 use color_eyre::Result;
+use parking_lot::Mutex;
+use azalea::prelude::*;
+
 
 mod rats;
 
@@ -9,6 +12,8 @@ async fn main() -> Result<()> {
     color_eyre::install()?;
     std::thread::spawn(ratatui_term);
     std::thread::spawn(deadlock_detector);
+
+    let account = Acc
 
     Ok(())
 }
