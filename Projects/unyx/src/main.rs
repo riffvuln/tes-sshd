@@ -10,6 +10,9 @@ const SERVER_ADDRESS: &'static str = "campfiresmp.mc.gg";
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    unsafe {
+        std::env::set_var("RUST_LOG", "warn,azalea_client::plugins::packet::game::events=off");
+    }
     color_eyre::install()?;
     let (tx_log, rx_log) = std::sync::mpsc::channel::<ConsoleType>();
     std::thread::spawn(move || ratatui_term(rx_log));
