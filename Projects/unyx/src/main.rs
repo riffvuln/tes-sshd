@@ -11,7 +11,8 @@ const SERVER_ADDRESS: &'static str = "kalwi.id";
 #[tokio::main]
 async fn main() -> Result<()> {
     color_eyre::install()?;
-    std::thread::spawn(ratatui_term());
+    let (tx_log, rx_log) = std::sync::mpsc::channel::<ConsoleType>();
+    std::thread::spawn(ratatui_term(rx));
     std::thread::spawn(deadlock_detector);
     azal::start_azalea(SERVER_ADDRESS).await?;
 
