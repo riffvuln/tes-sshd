@@ -133,14 +133,22 @@ impl RatApp {
             Constraint::Length(3),
             Constraint::Min(1),
         ]);
-        let [help_area, input_area, bot_log_area] = vertical.areas(frame.area());
+        let [help_area, input_area, logs_area] = vertical.areas(frame.area());
+        
+        // Split the logs area horizontally for bot_log and server_msgs
+        let horizontal = Layout::horizontal([
+            Constraint::Ratio(1, 2),
+            Constraint::Ratio(1, 2),
+        ]);
+        let [bot_log_area, server_msgs_area] = horizontal.areas(logs_area);
+        
         let (msg, style) = match self.input_mode {
             InputMode::Normal => (
                 vec![
                     "Press ".into(),
                     "q".bold(),
                     " to exit, ".into(),
-                    "e".bold(),
+                    "i".bold(),
                     " to start editing.".bold(),
                 ],
                 Style::default().add_modifier(Modifier::RAPID_BLINK),
@@ -183,15 +191,28 @@ impl RatApp {
             )),
         }
 
-        let messages: Vec<ListItem> = self
+        // Bot Log section
+        let bot_messages: Vec<ListItem> = self
             .bot_log
             .iter()
-            .map(|(m)| {
+            .map(|m| {
                 let content = Line::from(Span::raw(format!("{m}")));
                 ListItem::new(content)
             })
             .collect();
-        let messages = List::new(messages).block(Block::bordered().title("Bot Log"));
-        frame.render_widget(messages, bot_log_area);
+        let bot_messages_list = List::new(bot_messages).block(Block::bordered().title("Bot Log"));
+        frame.render_widget(bot_messages_list, bot_log_area);
+        
+        // Server Messages section
+        let server_messages: Vec<ListItem> = self
+            .server_msgs
+            .iter()
+            .map(|m| {
+                let content = Line::from(Span::raw(format!("{m}")));
+                ListItem::new(content)
+            })
+            .collect();
+        let server_messages_list = List::new(server_messages).block(Block::bordered().title("Server Messages"));
+        frame.render_widget(server_messages_list, server_msgs_area);
     }
 }
