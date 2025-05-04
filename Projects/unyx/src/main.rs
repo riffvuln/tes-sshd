@@ -56,7 +56,7 @@ fn ratatui_term(rx: std::sync::mpsc::Receiver<ConsoleType>) -> Result<()> {
             }
         }
     });
-    }
+    
     
     let app_result = rat_app.run(terminal);
     ratatui::restore();
