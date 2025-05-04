@@ -99,6 +99,29 @@ impl RatApp {
             terminal.draw(|frame| {
                 self.draw(frame);
             });
+            if let Event::Key(key) = event::read()? {
+                match self.input_mode {
+                    InputMode::Normal => match key.code {
+                        KeyCode::Char('e') => {
+                            self.input_mode = InputMode::Insert;
+                        }
+                        KeyCode::Char('i') => {
+                            return Ok(());
+                        }
+                        _ => {}
+                    },
+                    InputMode::Insert if key.kind == KeyEventKind::Press => match key.code {
+                        KeyCode::Enter => self.submit_msg(),
+                        KeyCode::Char(to_insert) => self.enter_char(to_insert),
+                        KeyCode::Backspace => self.delete_char(),
+                        KeyCode::Left => self.move_cursor_left(),
+                        KeyCode::Right => self.move_cursor_right(),
+                        KeyCode::Esc => self.input_mode = InputMode::Normal,
+                        _ => {}
+                    },
+                    InputMode::Insert => {}
+                }
+            }
 
         }
     }
