@@ -12,7 +12,7 @@ enum InputMode {
 }
 
 impl RatApp {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             input: String::new(),
             char_idx: 0,
