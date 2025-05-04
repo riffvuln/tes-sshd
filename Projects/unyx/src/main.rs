@@ -10,14 +10,16 @@ use ratatui::{
 
 fn main() -> Result<()> {
     color_eyre::install()?;
-    
+    ratatui_term()
     Ok(())
 }
 
 
 fn ratatui_term() {
     let terminal = ratatui::init();
-    
+    let app_result = RatApp::new().run(terminal);
+    ratatui::restore();
+    app_result
 }
 
 struct RatApp {
