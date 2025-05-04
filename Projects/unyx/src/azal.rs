@@ -20,21 +20,18 @@ pub async fn start_azalea(
 ) -> Result<()> {
     let account = Account::offline("ItzBtzz");
 
-    // Initialize state with the tx_log
-    let state = State { tx_log };
-
     ClientBuilder::new()
         .set_handler(handle)
-        .add_plugin(state)  // Add the state as a plugin
-        .start(account, address)  // Use the provided address parameter
-        .await?;  // Use ? for error propagation
+        .start(account, SERVER_ADDRESS)
+        .await
+        .unwrap();
     Ok(())
 }
 
 async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<()> {
     match event {
         Event::Chat(m) => {
-            state.tx_log
+            tx_log
                 .send(ConsoleType::ServerMsg(format!(
                     "{}",
                     m.message().to_ansi()
