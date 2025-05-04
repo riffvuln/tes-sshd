@@ -206,8 +206,7 @@ impl RatApp {
             Vec::new()
         };
         let bot_messages_list = List::new(bot_messages)
-            .block(Block::bordered().title("Bot Log"))
-            .wrap(true);
+            .block(Block::bordered().title("Bot Log"));
         frame.render_widget(bot_messages_list, bot_log_area);
         
         // Server Messages section
@@ -222,8 +221,6 @@ impl RatApp {
             Vec::new()
         };
         let server_messages_list = List::new(server_messages)
-            .block(Block::bordered().title("Server Messages"))
-            .wrap(true);
-        frame.render_widget(server_messages_list, server_msgs_area);
+            .block(Block::bordered().title("Server Messages"));
     }
 }
