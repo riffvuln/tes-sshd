@@ -29,8 +29,8 @@ impl RatApp {
             input: String::new(),
             char_idx: 0,
             input_mode: InputMode::Normal,
-            bot_log: Vec::new(),
-            server_msgs: Vec::new(),
+            bot_log: Arc::new(Mutex::new(Vec::new())),
+            server_msgs: Arc::new(Mutex::new(Vec::new())),
         }
     }
 
@@ -75,7 +75,9 @@ impl RatApp {
     }
 
     fn submit_msg(&mut self) {
-        self.bot_log.push(self.input.clone());
+        if let Ok(mut bot_log) = self.bot_log.lock() {
+            bot_log.push(self.input.clone());
+        }
         self.input.clear();
         self.reset_cursor();
     }
