@@ -12,7 +12,7 @@ pub enum ConsoleType {
 
 pub async fn start_azalea(
     address: &str,
-    tx_log: std::sync::mpsc::SendError<ConsoleType>,
+    tx_log: std::sync::mpsc::Sender<ConsoleType>,
 ) -> Result<()> {
     let account = Account::offline("ItzBtzz");
     
