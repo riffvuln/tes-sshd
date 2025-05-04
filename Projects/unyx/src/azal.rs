@@ -2,6 +2,8 @@ use color_eyre::Result;
 use parking_lot::Mutex;
 use azalea::prelude::*;
 
+use crate::SERVER_ADDRESS;
+
 #[derive(Default, Clone, Component)]
 pub struct State {}
 
@@ -31,5 +33,10 @@ pub async fn start_azalea(
     
         Ok(())
     };
+    ClientBuilder::new()
+        .set_handler(handle)
+        .start(account, SERVER_ADDRESS)
+        .await
+        .unwrap();
     Ok(())
 }
