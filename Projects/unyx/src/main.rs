@@ -97,8 +97,8 @@ impl RatApp {
     fn run(&mut self, terminal: DefaultTerminal) -> Result<()> {
         loop {
             terminal.draw(|frame| {
-                
-            })
+                self.draw(frame);
+            });
         }
     }
 
