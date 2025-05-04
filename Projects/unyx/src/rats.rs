@@ -193,32 +193,30 @@ impl RatApp {
             )),
         }
 
-        // Bot Log section
-        let bot_messages: Vec<ListItem> = if let Ok(bot_log) = self.bot_log.lock() {
-            bot_log.iter()
-                .map(|m| {
-                    let content = Line::from(Span::raw(format!("{m}")));
-                    ListItem::new(content)
-                })
-                .collect()
-        } else {
-            Vec::new()
-        };
-        let bot_messages_list = List::new(bot_messages).block(Block::bordered().title("Bot Log"));
-        frame.render_widget(bot_messages_list, bot_log_area);
+        // Bot Log section - Using Paragraph with wrapping to handle long messages
+        if let Ok(bot_log) = self.bot_log.lock() {
+            let content = bot_log.iter()
+                .map(|m| Line::from(m.as_str()))
+                .collect::<Vec<Line>>();
+            
+            let bot_messages = Paragraph::new(content)
+                .block(Block::bordered().title("Bot Log"))
+                .wrap(ratatui::widgets::Wrap { trim: true });
+            
+            frame.render_widget(bot_messages, bot_log_area);
+        }
         
-        // Server Messages section
-        let server_messages: Vec<ListItem> = if let Ok(server_msgs) = self.server_msgs.lock() {
-            server_msgs.iter()
-                .map(|m| {
-                    let content = Line::from(Span::raw(format!("{m}")));
-                    ListItem::new(content)
-                })
-                .collect()
-        } else {
-            Vec::new()
-        };
-        let server_messages_list = List::new(server_messages).block(Block::bordered().title("Server Messages"));
-        frame.render_widget(server_messages_list, server_msgs_area);
+        // Server Messages section - Using Paragraph with wrapping to handle long messages
+        if let Ok(server_msgs) = self.server_msgs.lock() {
+            let content = server_msgs.iter()
+                .map(|m| Line::from(m.as_str()))
+                .collect::<Vec<Line>>();
+            
+            let server_messages = Paragraph::new(content)
+                .block(Block::bordered().title("Server Messages"))
+                .wrap(ratatui::widgets::Wrap { trim: true });
+            
+            frame.render_widget(server_messages, server_msgs_area);
+        }
     }
 }
