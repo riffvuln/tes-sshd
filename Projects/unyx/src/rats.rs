@@ -1,4 +1,5 @@
 use color_eyre::Result;
+use std::sync::{Arc, Mutex};
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEventKind},
     layout::{Constraint, Layout, Position},
@@ -13,7 +14,7 @@ pub struct RatApp {
     input: String,
     char_idx: usize,
     input_mode: InputMode,
-    pub bot_log: Vec<String>,
+    pub bot_log: MuteVec<String>,
     pub server_msgs: Vec<String>,
 }
 
