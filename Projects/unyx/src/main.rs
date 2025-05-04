@@ -108,5 +108,18 @@ impl RatApp {
             Constraint::Length(3),
             Constraint::Min(1),
         ]);
+        let [help_area, input_area, bot_log_area] = vertical.areas(frame.area());
+        let (msg, style) = match self.input_mode {
+            InputMode::Normal => (
+                vec![
+                    "Press ".into(),
+                    "q".bold(),
+                    " to exit, ".into(),
+                    "e".bold(),
+                    " to start editing.".bold(),
+                ],
+                Style::default().add_modifier(Modifier::RAPID_BLINK),
+            ),
+        }
     }
 }
