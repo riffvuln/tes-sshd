@@ -1,6 +1,4 @@
 use color_eyre::Result;
-use parking_lot::Mutex;
-use azalea::prelude::*;
 
 
 mod rats;
@@ -11,7 +9,7 @@ const SERVER_ADDRESS: &'static str = "kalwi.id";
 #[tokio::main]
 async fn main() -> Result<()> {
     color_eyre::install()?;
-    std::thread::spawn(ratatui_term);
+    std::thread::spawn(ratatui_term());
     std::thread::spawn(deadlock_detector);
     azal::start_azalea(SERVER_ADDRESS).await?;
 
@@ -37,7 +35,7 @@ fn deadlock_detector() {
     }
 }
 
-fn ratatui_term() -> Result<()> {
+fn ratatui_term(rx: std::sync::mpsc::Receiver<String>) -> Result<()> {
     let terminal = ratatui::init();
     let mut rat_app = rats::RatApp::new();
     
