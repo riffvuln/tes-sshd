@@ -12,9 +12,9 @@ const SERVER_ADDRESS: &'static str = "kalwi.id";
 async fn main() -> Result<()> {
     color_eyre::install()?;
     let (tx_log, rx_log) = std::sync::mpsc::channel::<ConsoleType>();
-    std::thread::spawn(ratatui_term(rx));
-    std::thread::spawn(deadlock_detector);
-    azal::start_azalea(SERVER_ADDRESS).await?;
+    std::thread::spawn(move || ratatui_term(rx_log));
+    std::thread::spawn(|| deadlock_detector());
+    azal::start_azalea(SERVER_ADDRESS, tx_log).await?;
 
     Ok(())
 }
