@@ -6,3 +6,8 @@ edition = "2024"
 [dependencies]
 color-eyre = "0.6.4"
 ratatui = "0.29.0"
+
+[profile.dev]
+opt-level = 1
+[profile.dev.package."*"]
+opt-level = 3
