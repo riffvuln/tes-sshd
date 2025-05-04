@@ -7,8 +7,9 @@ pub struct State {}
 
 pub async fn start_azalea(
     address: &str,
+    tx_log: Option<tokio::sync::mpsc::Sender<String>>,
 ) -> Result<()> {
     let account = Account::offline("ItzBtzz");
-
+    
     Ok(())
 }
