@@ -21,10 +21,8 @@ pub async fn start_azalea(
             Event::Chat(m) => {
                 tx_log
                     .send(ConsoleType::ServerMsg(format!(
-                        "[{}] {}: {}",
-                        m.timestamp,
-                        m.sender,
-                        m.message
+                        "{}",
+                        m.message().to_ansi()
                     )))
                     .unwrap();
             }
