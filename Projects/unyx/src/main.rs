@@ -2,11 +2,14 @@ use color_eyre::Result;
 
 mod rats;
 
+const SERVER_ADDRESS: &'static str = "kalwi.id";
+
 #[tokio::main]
 async fn main() -> Result<()> {
     color_eyre::install()?;
     std::thread::spawn(ratatui_term);
     std::thread::spawn(deadlock_detector);
+
     Ok(())
 }
 
