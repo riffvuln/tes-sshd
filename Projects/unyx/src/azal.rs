@@ -35,7 +35,6 @@ pub async fn start_azalea(
     };
 
     ClientBuilder::new()
-        .set_state_type::<State>()
         .set_handler(handle)
         .start(account, address)
         .await
