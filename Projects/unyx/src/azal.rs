@@ -15,19 +15,19 @@ pub enum ConsoleType {
     ServerMsg(String),
 }
 
-pub async fn start_azalea(
-    address: &str,
-    tx_log: std::sync::mpsc::Sender<ConsoleType>,
-) -> Result<()> {
-    let account = Account::offline("ItzBtzz");    
+// pub async fn start_azalea(
+//     address: &str,
+//     tx_log: std::sync::mpsc::Sender<ConsoleType>,
+// ) -> Result<()> {
+//     let account = Account::offline("ItzBtzz");    
 
-    ClientBuilder::new()
-        .set_handler(handle)
-        .start(account, address)
-        .await
-        .unwrap();
-    Ok(())
-}
+//     ClientBuilder::new()
+//         .set_handler(handle)
+//         .start(account, address)
+//         .await
+//         .unwrap();
+//     Ok(())
+// }
 
 // Global variable to store the sender
 static TX_LOG: Lazy<Mutex<Option<Sender<ConsoleType>>>> = Lazy::new(|| Mutex::new(None));
