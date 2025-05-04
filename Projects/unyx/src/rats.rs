@@ -85,7 +85,7 @@ impl RatApp {
 
     pub fn run(&mut self, mut terminal: DefaultTerminal) -> Result<()> {
         loop {
-            terminal.draw(|frame| {
+            let _ = terminal.draw(|frame| {
                 self.draw(frame);
             });
             if let Event::Key(key) = event::read()? {
