@@ -3,7 +3,7 @@ use parking_lot::Mutex;
 use azalea::prelude::*;
 
 use std::sync::mpsc::Sender;
-use std::sync::Arc;
+// use std::sync::Arc;
 use once_cell::sync::Lazy;
 
 #[derive(Default, Clone, Component)]
