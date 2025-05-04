@@ -4,7 +4,7 @@ use azalea::prelude::*;
 
 use crate::SERVER_ADDRESS;
 
-#[derive(Clone, Component)]
+#[derive(Clone, Component, Default)]
 pub struct State {}
 
 pub enum ConsoleType {
@@ -27,17 +27,6 @@ pub async fn start_azalea(
 }
 
 async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<()> {
-    match event {
-        Event::Chat(m) => {
-            tx_log
-                .send(ConsoleType::ServerMsg(format!(
-                    "{}",
-                    m.message().to_ansi()
-                )))
-                .unwrap();
-        }
-        _ => {}
-    }
 
     Ok(())
 }
