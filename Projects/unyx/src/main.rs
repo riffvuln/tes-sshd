@@ -4,7 +4,7 @@ mod rats;
 
 fn main() -> Result<()> {
     color_eyre::install()?;
-    ratatui_term()
+    std::thread::spawn(ratatui_term);
 }
 
 
