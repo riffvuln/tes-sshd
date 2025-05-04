@@ -4,6 +4,8 @@ use color_eyre::Result;
 mod rats;
 mod azal;
 
+use azal::ConsoleType;
+
 const SERVER_ADDRESS: &'static str = "kalwi.id";
 
 #[tokio::main]
@@ -35,17 +37,26 @@ fn deadlock_detector() {
     }
 }
 
-fn ratatui_term(rx: std::sync::mpsc::Receiver<String>) -> Result<()> {
+fn ratatui_term(rx: std::sync::mpsc::Receiver<ConsoleType>) -> Result<()> {
     let terminal = ratatui::init();
     let mut rat_app = rats::RatApp::new();
-    
-    let bot_log_clone = rat_app.bot_log.clone();
-    
-    std::thread::spawn(move ||{
-        std::thread::sleep(std::time::Duration::from_secs(2));
-        let mut bot_log = bot_log_clone.lock().unwrap();
-        bot_log.push("Hello from the bot!".to_string());
+
+    std::thread::spawn(move || {
+        loop {
+            match rx.recv() {
+                Ok(ConsoleType::Botlog(msg)) => {
+                    let mut bot_log = rat_app.bot_log.lock();
+                    bot_log.push(msg);
+                }
+                Ok(ConsoleType::ServerMsg(msg)) => {
+                    let mut server_msgs = rat_app.server_msgs.lock();
+                    server_msgs.push(msg);
+                }
+                Err(_) => break,
+            }
+        }
     });
+    }
     
     let app_result = rat_app.run(terminal);
     ratatui::restore();
