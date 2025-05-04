@@ -13,8 +13,8 @@ pub struct RatApp {
     input: String,
     char_idx: usize,
     input_mode: InputMode,
-    bot_log: Vec<String>,
-    server_msgs: Vec<String>,
+    pub bot_log: Vec<String>,
+    pub server_msgs: Vec<String>,
 }
 
 enum InputMode {
