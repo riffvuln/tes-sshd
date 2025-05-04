@@ -4,6 +4,7 @@ use azalea::prelude::*;
 
 
 mod rats;
+mod azal;
 
 const SERVER_ADDRESS: &'static str = "kalwi.id";
 
@@ -12,8 +13,7 @@ async fn main() -> Result<()> {
     color_eyre::install()?;
     std::thread::spawn(ratatui_term);
     std::thread::spawn(deadlock_detector);
-
-    let account = Acc
+    azal::start_azalea(SERVER_ADDRESS).await?;
 
     Ok(())
 }
