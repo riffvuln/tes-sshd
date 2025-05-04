@@ -32,7 +32,7 @@ pub enum ConsoleType {
 // Global variable to store the sender
 static TX_LOG: Lazy<Mutex<Option<Sender<ConsoleType>>>> = Lazy::new(|| Mutex::new(None));
 
-async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<()> {
     match event {
         Event::Chat(m) => {
             let message = m.message().to_ansi();
