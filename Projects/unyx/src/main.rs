@@ -191,7 +191,7 @@ impl RatApp {
                 ListItem::new(content)
             })
             .collect();
-        let messages = List::new(messages).block(Block::bordered().title("Messages"));
+        let messages = List::new(messages).block(Block::bordered().title("Bot Log"));
         frame.render_widget(messages, bot_log_area);
     }
 }
