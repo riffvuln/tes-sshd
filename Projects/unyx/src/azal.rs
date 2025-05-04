@@ -17,24 +17,24 @@ pub async fn start_azalea(
     tx_log: std::sync::mpsc::Sender<ConsoleType>,
 ) -> Result<()> {
     let account = Account::offline("ItzBtzz");
+    let state = State::default();
 
-    let handle = |bot: Client, event: Event, state: State| -> color_eyre::Result<()> {
-        match event {
-            Event::Chat(m) => {
-                tx_log
-                    .send(ConsoleType::ServerMsg(format!(
-                        "{}",
-                        m.message().to_ansi()
-                    )))
-                    .unwrap();
-            }
-            _ => {}
-        }
-    
-        Ok(())
-    };
     ClientBuilder::new()
-        .set_handler(handle)
+        .set_handler(move |bot: Client, event: Event, _state: State| -> color_eyre::Result<()> {
+            match event {
+                Event::Chat(m) => {
+                    tx_log
+                        .send(ConsoleType::ServerMsg(format!(
+                            "{}",
+                            m.message().to_ansi()
+                        )))
+                        .unwrap();
+                }
+                _ => {}
+            }
+        
+            Ok(())
+        })
         .start(account, SERVER_ADDRESS)
         .await
         .unwrap();
