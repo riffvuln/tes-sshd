@@ -10,9 +10,7 @@ use ratatui::{
 
 fn main() -> Result<()> {
     color_eyre::install()?;
-    ratatui_term();
-
-    Ok(())
+    ratatui_term()
 }
 
 
