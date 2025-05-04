@@ -138,7 +138,7 @@ impl RatApp {
         let input = Paragraph::new(self.input.as_str())
             .style(match self.input_mode {
                 InputMode::Normal => Style::default(),
-                InputMode::Editing => Style::default().fg(Color::Yellow),
+                InputMode::Insert => Style::default().fg(Color::Yellow),
             })
             .block(Block::bordered().title("Input"));
         frame.render_widget(input, input_area);
@@ -149,17 +149,17 @@ impl RatApp {
             // Make the cursor visible and ask ratatui to put it at the specified coordinates after
             // rendering
             #[allow(clippy::cast_possible_truncation)]
-            InputMode::Editing => frame.set_cursor_position(Position::new(
+            InputMode::Insert => frame.set_cursor_position(Position::new(
                 // Draw the cursor at the current position in the input field.
                 // This position is can be controlled via the left and right arrow key
-                input_area.x + self.character_index as u16 + 1,
+                input_area.x + self.char_idx as u16 + 1,
                 // Move one line down, from the border to the input line
                 input_area.y + 1,
             )),
         }
 
         let messages: Vec<ListItem> = self
-            .messages
+            .bot_log
             .iter()
             .enumerate()
             .map(|(i, m)| {
@@ -168,6 +168,6 @@ impl RatApp {
             })
             .collect();
         let messages = List::new(messages).block(Block::bordered().title("Messages"));
-        frame.render_widget(messages, messages_area);
+        frame.render_widget(messages, bot_log_area);
     }
 }
