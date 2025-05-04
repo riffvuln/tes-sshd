@@ -103,10 +103,10 @@ impl RatApp {
             if let Event::Key(key) = event::read()? {
                 match self.input_mode {
                     InputMode::Normal => match key.code {
-                        KeyCode::Char('e') => {
+                        KeyCode::Char('i') => {
                             self.input_mode = InputMode::Insert;
                         }
-                        KeyCode::Char('i') => {
+                        KeyCode::Char('q') => {
                             return Ok(());
                         }
                         _ => {}
