@@ -41,16 +41,20 @@ fn deadlock_detector() {
 fn ratatui_term(rx: std::sync::mpsc::Receiver<ConsoleType>) -> Result<()> {
     let terminal = ratatui::init();
     let mut rat_app = rats::RatApp::new();
+    
+    // Clone the Arc fields before moving them
+    let bot_log_clone = rat_app.bot_log.clone();
+    let server_msgs_clone = rat_app.server_msgs.clone();
 
     std::thread::spawn(move || {
         loop {
             match rx.recv() {
                 Ok(ConsoleType::Botlog(msg)) => {
-                    let mut bot_log = rat_app.bot_log.lock();
+                    let mut bot_log = bot_log_clone.lock().unwrap();
                     bot_log.push(msg);
                 }
                 Ok(ConsoleType::ServerMsg(msg)) => {
-                    let mut server_msgs = rat_app.server_msgs.lock();
+                    let mut server_msgs = server_msgs_clone.lock().unwrap();
                     server_msgs.push(msg);
                 }
                 Err(_) => break,
