@@ -68,7 +68,45 @@ impl RatApp {
             .unwrap_or(self.input.len())
     }
 
+    fn delete_char(&mut self) {
+        let is_not_cursor_leftmost = self.char_idx != 0;
+        if is_not_cursor_leftmost {
+            let cur_idx = self.char_idx;
+            let from_left_to_cur_idx = cur_idx - 1;
+            let before_char_to_delete = self.input.chars().take(from_left_to_cur_idx);
+            let after_char_to_delete = self.input.chars().skip(cur_idx);
+            self.input = before_char_to_delete.chain(after_char_to_delete).collect();
+            self.move_cursor_left();
+        }
+    }
+
+    fn reset_cursor(&mut self) {
+        self.char_idx = 0;
+    }
+
+    fn submit_msg(&mut self) {
+        self.bot_log.push(self.input.clone());
+        self.input.clear();
+        self.reset_cursor();
+    }
+
     fn clamp_cursor(&self, new_cursor_pos: usize) -> usize {
         new_cursor_pos.clamp(0, self.input.chars().count())
+    }
+
+    fn run(&mut self, terminal: DefaultTerminal) -> Result<()> {
+        loop {
+            terminal.draw(|frame| {
+                
+            })
+        }
+    }
+
+    fn draw(&self, frame: &mut Frame) {
+        let vertical = Layout::vertical([
+            Constraint::Length(1),
+            Constraint::Length(3),
+            Constraint::Min(1),
+        ]);
     }
 }
