@@ -12,7 +12,7 @@ enum ConsoleType {
 
 pub async fn start_azalea(
     address: &str,
-    tx_log: Option<tokio::sync::mpsc::Sender<String>>,
+    tx_log: Option<tokio::sync::mpsc::Sender<ConsoleType>>,
 ) -> Result<()> {
     let account = Account::offline("ItzBtzz");
     
