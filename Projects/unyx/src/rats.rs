@@ -1,4 +1,4 @@
-struct RatApp {
+pub struct RatApp {
     input: String,
     char_idx: usize,
     input_mode: InputMode,
@@ -72,7 +72,7 @@ impl RatApp {
         new_cursor_pos.clamp(0, self.input.chars().count())
     }
 
-    fn run(&mut self, mut terminal: DefaultTerminal) -> Result<()> {
+    pub fn run(&mut self, mut terminal: DefaultTerminal) -> Result<()> {
         loop {
             terminal.draw(|frame| {
                 self.draw(frame);
