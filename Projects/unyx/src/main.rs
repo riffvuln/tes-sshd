@@ -55,14 +55,15 @@ impl RatApp {
     }
 
     fn enter_char(&mut self, c: char) {
-        let idx = self.by
+        let idx = self.byte_index();
+        
     }
 
     fn byte_index(&self) -> usize {
         self.input
             .char_indices()
             .map(|(i, _)| i)
-            .nth(self.character_index)
+            .nth(self.char_idx)
             .unwrap_or(self.input.len())
     }
 
