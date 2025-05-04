@@ -36,7 +36,6 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
     match event {
         Event::Chat(m) => {
             let message = m.message().to_ansi();
-            println!("{}", message);
             
             // Send to the channel if available
             if let Some(tx) = &*TX_LOG.lock() {
