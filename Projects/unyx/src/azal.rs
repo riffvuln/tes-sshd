@@ -4,7 +4,7 @@ use azalea::prelude::*;
 
 use crate::SERVER_ADDRESS;
 
-#[derive(Default, Clone, Component)]
+#[derive(Clone, Component)]
 pub struct State {
     pub tx_log: std::sync::mpsc::Sender<ConsoleType>,
 }
