@@ -129,7 +129,7 @@ impl RatApp {
                     " to send.".bold(),
                 ],
                 Style::default(),
-            ),
-        }
+            )
+        };
     }
 }
