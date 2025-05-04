@@ -5,7 +5,9 @@ use azalea::prelude::*;
 use crate::SERVER_ADDRESS;
 
 #[derive(Default, Clone, Component)]
-pub struct State {}
+pub struct State {
+    pub tx_log: std::sync::mpsc::Sender<ConsoleType>,
+}
 
 pub enum ConsoleType {
     Botlog(String),
