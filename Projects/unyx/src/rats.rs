@@ -14,8 +14,8 @@ pub struct RatApp {
     input: String,
     char_idx: usize,
     input_mode: InputMode,
-    pub bot_log: MuteVec<String>,
-    pub server_msgs: Vec<String>,
+    pub bot_log: Arc<Mutex<Vec<String>>>,
+    pub server_msgs: Arc<Mutex<Vec<String>>>,
 }
 
 enum InputMode {
