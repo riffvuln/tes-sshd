@@ -14,7 +14,8 @@ async fn main() -> Result<()> {
     let (tx_log, rx_log) = std::sync::mpsc::channel::<ConsoleType>();
     std::thread::spawn(move || ratatui_term(rx_log));
     std::thread::spawn(|| deadlock_detector());
-    azal::start_azalea(SERVER_ADDRESS, tx_log).await?;
+    let (tokio_tx, _) = tokio::sync::mpsc::channel::<ConsoleType>(100);
+    azal::start_azalea(SERVER_ADDRESS, Some(tokio_tx)).await?;
 
     Ok(())
 }
