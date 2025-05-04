@@ -6,7 +6,7 @@ mod azal;
 
 use azal::ConsoleType;
 
-const SERVER_ADDRESS: &'static str = "pm.purevanilla.co";
+const SERVER_ADDRESS: &'static str = "campfiresmp.mc.gg";
 
 #[tokio::main]
 async fn main() -> Result<()> {
