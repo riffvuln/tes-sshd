@@ -41,4 +41,5 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
         _ => {}
     }
 
-    Ok(()))
+    Ok(())
+}
