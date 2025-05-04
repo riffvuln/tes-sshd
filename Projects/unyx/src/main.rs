@@ -6,13 +6,13 @@ mod rats;
 async fn main() -> Result<()> {
     color_eyre::install()?;
     std::thread::spawn(ratatui_term);
-    
+    std::thread::spawn(deadlock_detector);
     Ok(())
 }
 
 fn deadlock_detector() {
     loop {
-        thread::sleep(Duration::from_secs(10));
+        std::thread::sleep(std::time::Duration::from_secs(10));
         let deadlocks = parking_lot::deadlock::check_deadlock();
         if deadlocks.is_empty() {
             continue;
