@@ -15,6 +15,9 @@ pub async fn start_azalea(
     tx_log: std::sync::mpsc::Sender<ConsoleType>,
 ) -> Result<()> {
     let account = Account::offline("ItzBtzz");
-    
+
+    let handle = |bot: Client, event: Event, state: State| -> color_eyre::Result<()> {
+
+    };
     Ok(())
 }
