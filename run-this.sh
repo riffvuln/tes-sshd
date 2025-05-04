@@ -12,5 +12,11 @@ install_mojo() {
   source /root/.bashrc
 }
 
+setup_workdir() {
+  echo "alias workdir='cd /home/runner/work/tes-sshd/tes-sshd/Projects'" >> ~/.bashrc
+  source ~/.bashrc
+}
+
+setup_workdir
 install_rust
 install_mojo
