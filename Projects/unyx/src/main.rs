@@ -10,7 +10,9 @@ fn main() -> Result<()> {
 
 fn ratatui_term() -> Result<()> {
     let terminal = ratatui::init();
-    let app_result = rats::RatApp::new().run(terminal);
+    let mut rat_app = rats::RatApp::new();
+    
+    let app_result = rat_app.run(terminal);
     ratatui::restore();
     app_result
 }
