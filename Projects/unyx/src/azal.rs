@@ -18,7 +18,7 @@ pub async fn start_azalea(
 ) -> Result<()> {
     let account = Account::offline("ItzBtzz");
 
-    let handle = |bot: Client, event: Event, state: State| -> color_eyre::Result<()> {
+    let handle = move |bot: Client, event: Event, state: State| -> color_eyre::Result<()> {
         match event {
             Event::Chat(m) => {
                 tx_log
