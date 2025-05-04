@@ -5,6 +5,11 @@ use azalea::prelude::*;
 #[derive(Default, Clone, Component)]
 pub struct State {}
 
+enum ConsoleType {
+    Botlog(String),
+    ServerMsg(String),
+}
+
 pub async fn start_azalea(
     address: &str,
     tx_log: Option<tokio::sync::mpsc::Sender<String>>,
