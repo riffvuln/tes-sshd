@@ -22,7 +22,7 @@ fn ratatui_term() -> Result<()> {
         log.push("Hello from the bot!".to_string());
     });
     
-    let app_result = rat_app.run(terminal, bot_log);
+    let app_result = rat_app.run(terminal);
     ratatui::restore();
     app_result
 }
