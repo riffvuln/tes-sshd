@@ -4,7 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+azalea = "0.12.0"
 color-eyre = "0.6.4"
+parking_lot = "0.12.3"
 ratatui = "0.29.0"
 
 [profile.dev]
