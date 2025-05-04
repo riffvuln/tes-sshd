@@ -56,7 +56,7 @@ impl RatApp {
 
     fn enter_char(&mut self, c: char) {
         let idx = self.byte_index();
-        
+        self.input.insert(idx, c);
     }
 
     fn byte_index(&self) -> usize {
