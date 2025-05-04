@@ -2,7 +2,6 @@ use color_eyre::Result;
 use parking_lot::Mutex;
 use azalea::prelude::*;
 
-use crate::SERVER_ADDRESS;
 use std::sync::mpsc::Sender;
 use std::sync::Arc;
 use once_cell::sync::Lazy;
