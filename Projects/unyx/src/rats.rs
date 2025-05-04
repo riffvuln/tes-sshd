@@ -175,7 +175,8 @@ impl RatApp {
                 InputMode::Normal => Style::default(),
                 InputMode::Insert => Style::default().fg(Color::Yellow),
             })
-            .block(Block::bordered().title("Input"));
+            .block(Block::bordered().title("Input"))
+            .wrap(ratatui::widgets::Wrap { trim: true });
         frame.render_widget(input, input_area);
         match self.input_mode {
             // Hide the cursor. `Frame` does this by default, so we don't need to do anything here
@@ -198,13 +199,15 @@ impl RatApp {
             bot_log.iter()
                 .map(|m| {
                     let content = Line::from(Span::raw(format!("{m}")));
-                    ListItem::new(content)
+                    ListItem::new(content).style(Style::default())
                 })
                 .collect()
         } else {
             Vec::new()
         };
-        let bot_messages_list = List::new(bot_messages).block(Block::bordered().title("Bot Log"));
+        let bot_messages_list = List::new(bot_messages)
+            .block(Block::bordered().title("Bot Log"))
+            .wrap(true);
         frame.render_widget(bot_messages_list, bot_log_area);
         
         // Server Messages section
@@ -212,13 +215,15 @@ impl RatApp {
             server_msgs.iter()
                 .map(|m| {
                     let content = Line::from(Span::raw(format!("{m}")));
-                    ListItem::new(content)
+                    ListItem::new(content).style(Style::default())
                 })
                 .collect()
         } else {
             Vec::new()
         };
-        let server_messages_list = List::new(server_messages).block(Block::bordered().title("Server Messages"));
+        let server_messages_list = List::new(server_messages)
+            .block(Block::bordered().title("Server Messages"))
+            .wrap(true);
         frame.render_widget(server_messages_list, server_msgs_area);
     }
 }
