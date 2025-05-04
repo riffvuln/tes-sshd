@@ -33,9 +33,25 @@ pub async fn start_azalea(
     
         Ok(())
     };
+    fn handle_event(bot: Client, event: Event, state: State) -> color_eyre::Result<()> {
+        match event {
+            Event::Chat(m) => {
+                tx_log
+                    .send(ConsoleType::ServerMsg(format!(
+                        "{}",
+                        m.message().to_ansi()
+                    )))
+                    .unwrap();
+            }
+            _ => {}
+        }
+    
+        Ok(())
+    }
+
     ClientBuilder::new()
-        .set_handler(handle)
-        .start(account, SERVER_ADDRESS)
+        .set_handler(handle_event)
+        .start(account, address)
         .await
         .unwrap();
     Ok(())
