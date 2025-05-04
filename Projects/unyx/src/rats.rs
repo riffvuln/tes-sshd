@@ -1,5 +1,6 @@
 use color_eyre::Result;
 use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEventKind},
     layout::{Constraint, Layout, Position},
@@ -87,34 +88,44 @@ impl RatApp {
     }
 
     pub fn run(&mut self, mut terminal: DefaultTerminal) -> Result<()> {
+        
+        let mut last_draw = Instant::now();
+        let draw_interval = Duration::from_secs(1);
+        
         loop {
-            let _ = terminal.draw(|frame| {
-                self.draw(frame);
-            });
-            if let Event::Key(key) = event::read()? {
-                match self.input_mode {
-                    InputMode::Normal => match key.code {
-                        KeyCode::Char('i') => {
-                            self.input_mode = InputMode::Insert;
-                        }
-                        KeyCode::Char('q') => {
-                            return Ok(());
-                        }
-                        _ => {}
-                    },
-                    InputMode::Insert if key.kind == KeyEventKind::Press => match key.code {
-                        KeyCode::Enter => self.submit_msg(),
-                        KeyCode::Char(to_insert) => self.enter_char(to_insert),
-                        KeyCode::Backspace => self.delete_char(),
-                        KeyCode::Left => self.move_cursor_left(),
-                        KeyCode::Right => self.move_cursor_right(),
-                        KeyCode::Esc => self.input_mode = InputMode::Normal,
-                        _ => {}
-                    },
-                    InputMode::Insert => {}
+            let now = Instant::now();
+            if now.duration_since(last_draw) >= draw_interval {
+                let _ = terminal.draw(|frame| {
+                    self.draw(frame);
+                });
+                last_draw = now;
+            }
+            
+            if event::poll(Duration::from_millis(100))? {
+                if let Event::Key(key) = event::read()? {
+                    match self.input_mode {
+                        InputMode::Normal => match key.code {
+                            KeyCode::Char('i') => {
+                                self.input_mode = InputMode::Insert;
+                            }
+                            KeyCode::Char('q') => {
+                                return Ok(());
+                            }
+                            _ => {}
+                        },
+                        InputMode::Insert if key.kind == KeyEventKind::Press => match key.code {
+                            KeyCode::Enter => self.submit_msg(),
+                            KeyCode::Char(to_insert) => self.enter_char(to_insert),
+                            KeyCode::Backspace => self.delete_char(),
+                            KeyCode::Left => self.move_cursor_left(),
+                            KeyCode::Right => self.move_cursor_right(),
+                            KeyCode::Esc => self.input_mode = InputMode::Normal,
+                            _ => {}
+                        },
+                        InputMode::Insert => {}
+                    }
                 }
             }
-
         }
     }
 
