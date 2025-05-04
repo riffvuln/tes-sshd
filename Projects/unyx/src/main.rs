@@ -186,9 +186,8 @@ impl RatApp {
         let messages: Vec<ListItem> = self
             .bot_log
             .iter()
-            .enumerate()
-            .map(|(i, m)| {
-                let content = Line::from(Span::raw(format!("{i}: {m}")));
+            .map(|(m)| {
+                let content = Line::from(Span::raw(format!("{m}")));
                 ListItem::new(content)
             })
             .collect();
