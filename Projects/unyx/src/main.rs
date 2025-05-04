@@ -2,9 +2,11 @@ use color_eyre::Result;
 
 mod rats;
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     color_eyre::install()?;
     std::thread::spawn(ratatui_term);
+    Ok(())
 }
 
 
