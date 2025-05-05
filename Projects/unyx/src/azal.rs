@@ -45,7 +45,7 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
     }
     
     // Use try_recv() instead of recv() to make it non-blocking
-    match &rx_input.try_recv() {
+    match rx_input.try_recv() {
         Ok(CommandType::Chat(msg)) => {
             bot.chat(&msg);
         }
