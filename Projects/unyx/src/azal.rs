@@ -29,6 +29,7 @@ pub enum ConsoleType {
 pub enum CommandType {
     Chat(String),
     Goto(String),
+    Mobkillaura(bool)
 }
 
 // Global variable to store the sender
@@ -71,6 +72,9 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
                     let z = msg[2].parse::<i32>().unwrap();
                     bot.goto(BlockPosGoal(BlockPos::new(x, y, z)));
                 }
+            }
+            Ok(CommandType::Mobkillaura(mut enabled)) => {
+                state.killaura = enabled;
             }
             Err(std::sync::mpsc::TryRecvError::Empty) => {
                 // No message available, that's fine :3
