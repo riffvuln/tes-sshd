@@ -11,7 +11,15 @@ use killaura::tick_mob_killaura;
 
 
 #[derive(Default, Clone, Component)]
-pub struct State {}
+pub struct State {
+    pub killaura: bool,
+}
+
+impl State {
+    pub fn new() -> Self {
+        Self { killaura: true }
+    }
+}
 
 pub enum ConsoleType {
     Botlog(String),
