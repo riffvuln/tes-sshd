@@ -244,9 +244,11 @@ impl RatApp {
             // Match command to CommandType
             let command = match cmd.to_lowercase().as_str() {
                 "chat" => Some(CommandType::Chat(args)),
+                "goto" => Some(CommandType::Goto(args)),
                 // Add more command mappings here as needed
                 _ => None,
             };
+
             
             // Process if valid command was found
             if let Some(command) = command {
