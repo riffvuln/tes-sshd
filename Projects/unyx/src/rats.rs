@@ -226,4 +226,31 @@ impl RatApp {
         let server_messages_list = List::new(server_messages).block(Block::bordered().title("Server Messages"));
         frame.render_widget(server_messages_list, server_msgs_area);
     }
+
+    fn process_command(&mut self, tx_input: &std::sync::mpsc::Sender<CommandType>) -> Result<bool> {
+        // Skip if input is empty
+        if self.input.is_empty() {
+            return Ok(false);
+        }
+
+        // Check for command prefix
+        if let Some(cmd) = self.input.split_whitespace().next() {
+            let args = self.input.trim_start_matches(cmd).trim().to_string();
+            
+            // Match command to CommandType
+            let command = match cmd.to_lowercase().as_str() {
+                "chat" => Some(CommandType::Chat(args)),
+                // Add more command mappings here as needed
+                _ => None,
+            };
+            
+            // Process if valid command was found
+            if let Some(command) = command {
+                tx_input.send(command)?;
+
+            }
+        }
+        
+        Ok(false)
+    }
 }
