@@ -2,7 +2,7 @@ use color_eyre::Result;
 use parking_lot::Mutex;
 use azalea::prelude::*;
 
-use std::sync::mpsc::Sender;
+use std::sync::mpsc::{Receiver, Sender};
 // use std::sync::Arc;
 use once_cell::sync::Lazy;
 
@@ -20,6 +20,7 @@ pub enum CommandType {
 
 // Global variable to store the sender
 static TX_LOG: Lazy<Mutex<Option<Sender<ConsoleType>>>> = Lazy::new(|| Mutex::new(None));
+static RX_INPUT: Lazy<Mutex<Option<Receiver<CommandType>>>> = Lazy::new(|| Mutex::new(None));
 
 async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<()> {
     match event {
@@ -45,6 +46,7 @@ fn init_handler(tx: Sender<ConsoleType>) {
 pub async fn start_azalea(
     address: &str,
     tx_log: std::sync::mpsc::Sender<ConsoleType>,
+    rx_input: std::sync::mpsc::Receiver<CommandType>,
 ) -> Result<()> {
     let account = Account::offline("ItzBtzz");
     
