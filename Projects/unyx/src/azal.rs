@@ -1,10 +1,14 @@
+// Modules
+mod killaura;
+
+// Re-exports
 use color_eyre::Result;
 use parking_lot::Mutex;
 use azalea::{pathfinder::goals::BlockPosGoal, prelude::*, BlockPos};
-
 use std::sync::mpsc::{Receiver, Sender};
-// use std::sync::Arc;
 use once_cell::sync::Lazy;
+use killaura::tick_mob_killaura;
+
 
 #[derive(Default, Clone, Component)]
 pub struct State {}
