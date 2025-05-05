@@ -24,6 +24,8 @@ static TX_LOG: Lazy<Mutex<Option<Sender<ConsoleType>>>> = Lazy::new(|| Mutex::ne
 static RX_INPUT: Lazy<Mutex<Option<Receiver<CommandType>>>> = Lazy::new(|| Mutex::new(None));
 
 async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<()> {
+    let rx_input = RX_INPUT.lock().unwrap();
+    
     match event {
         Event::Login => {
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
@@ -43,21 +45,18 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
     }
     
     // Use try_recv() instead of recv() to make it non-blocking
-    let rx_input = RX_INPUT.lock();
-    if let Some(rx) = &*rx_input {
-        match rx.try_recv() {
-            Ok(CommandType::Chat(msg)) => {
-                bot.chat(&msg);
-            }
-            Ok(CommandType::Goto(msg)) => {
+    match rx.try_recv() {
+        Ok(CommandType::Chat(msg)) => {
+            bot.chat(&msg);
+        }
+        Ok(CommandType::Goto(msg)) => {
                 
-            }
-            Err(std::sync::mpsc::TryRecvError::Empty) => {
-                // No message available, that's fine
-            }
-            Err(_) => {
-                // Channel is disconnected
-            }
+        }
+        Err(std::sync::mpsc::TryRecvError::Empty) => {
+            // No message available, that's fine
+        }
+        Err(_) => {
+            // Channel is disconnected
         }
     }
     Ok(())
