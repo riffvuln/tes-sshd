@@ -35,7 +35,15 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
         }
         _ => {}
     }
-
+    let rx_input = RX_INPUT.lock();
+    if let Some(rx) = &*rx_input {
+        match rx.recv() {
+            Ok(CommandType::Chat(msg)) => {
+                bot.send_chat_message(msg).await?;
+            }
+            Err(_) => {}
+        }
+    }
     Ok(())
 }
 
