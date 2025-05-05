@@ -1,6 +1,6 @@
 use azalea::{
     ecs::prelude::*,
-    entity::{Dead, LocalEntity, Position, metadata::AbstractMonster},
+    entity::{metadata::{AbstractAnimal, AbstractMonster}, Dead, LocalEntity, Position},
     prelude::*,
     world::{InstanceName, MinecraftEntityId},
 };
@@ -23,6 +23,7 @@ pub fn tick_mob_killaura(bot: Client, state: State) -> color_eyre::Result<()> {
         let mut query = ecs
             .query_filtered::<(&MinecraftEntityId, &Position, &InstanceName), (
                 With<AbstractMonster>,
+                With<AbstractAnimal>,
                 Without<LocalEntity>,
                 Without<Dead>,
             )>();
