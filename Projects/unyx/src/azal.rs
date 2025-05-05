@@ -12,12 +12,12 @@ use killaura::tick_mob_killaura;
 
 #[derive(Default, Clone, Component)]
 pub struct State {
-    pub killaura: bool,
+    pub mob_killaura: bool,
 }
 
 impl State {
     pub fn new() -> Self {
-        Self { killaura: true }
+        Self { mob_killaura: true }
     }
 }
 
@@ -74,7 +74,7 @@ async fn handle(bot: Client, event: Event, mut state: State) -> color_eyre::Resu
                 }
             }
             Ok(CommandType::Mobkillaura(mut enabled)) => {
-                state.killaura = enabled;
+                state.mob_killaura = enabled;
             }
             Err(std::sync::mpsc::TryRecvError::Empty) => {
                 // No message available, that's fine :3
