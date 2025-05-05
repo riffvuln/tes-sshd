@@ -35,13 +35,20 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
         }
         _ => {}
     }
+    
+    // Use try_recv() instead of recv() to make it non-blocking
     let rx_input = RX_INPUT.lock();
     if let Some(rx) = &*rx_input {
-        match rx.recv() {
+        match rx.try_recv() {
             Ok(CommandType::Chat(msg)) => {
                 bot.chat(&msg);
             }
-            Err(_) => {}
+            Err(std::sync::mpsc::TryRecvError::Empty) => {
+                // No message available, that's fine
+            }
+            Err(_) => {
+                // Channel is disconnected
+            }
         }
     }
     Ok(())
