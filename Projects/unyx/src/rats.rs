@@ -77,8 +77,8 @@ impl RatApp {
         self.char_idx = 0;
     }
 
-    fn submit_msg(&mut self, tx_input: std::sync::mpsc::Sender<CommandType>) {
-        self.process_command(&tx_input);
+    fn submit_msg(&mut self, &tx_input: std::sync::mpsc::Sender<CommandType>) {
+        self.process_command(tx_input);
         if let Ok(mut bot_log) = self.bot_log.lock() {
             bot_log.push(self.input.clone());
         }
@@ -117,7 +117,7 @@ impl RatApp {
                             _ => {}
                         },
                         InputMode::Insert if key.kind == KeyEventKind::Press => match key.code {
-                            KeyCode::Enter => self.submit_msg(tx_input.clone()),
+                            KeyCode::Enter => self.submit_msg(&tx_input),
                             KeyCode::Char(to_insert) => self.enter_char(to_insert),
                             KeyCode::Backspace => self.delete_char(),
                             KeyCode::Left => self.move_cursor_left(),
