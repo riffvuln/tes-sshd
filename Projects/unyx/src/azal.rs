@@ -24,6 +24,11 @@ static RX_INPUT: Lazy<Mutex<Option<Receiver<CommandType>>>> = Lazy::new(|| Mutex
 
 async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<()> {
     match event {
+        Event::Login => {
+            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+            bot.chat("/login rifaiGG123");
+            bot.chat("/register rifaiGG123 rifaiGG123");
+        }
         Event::Chat(m) => {
             let message = m.message().to_ansi();
             
