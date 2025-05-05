@@ -214,7 +214,10 @@ impl RatApp {
         frame.render_widget(bot_messages_list, bot_log_area);
         
         // Server Messages section
-        let server_messages: Vec<ListItem> = if let Ok(server_msgs) = self.server_msgs.lock() {
+        let server_messages: Vec<ListItem> = if let Ok(mut server_msgs) = self.server_msgs.lock() {
+            if server_msgs.len() > 10 {
+                server_msgs.clear();
+            }
             server_msgs.iter()
                 .map(|m| {
                     let content = Line::from(Span::raw(format!("{m}")));
