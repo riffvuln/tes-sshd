@@ -107,6 +107,7 @@ pub async fn start_azalea(
 
     ClientBuilder::new()
         .set_handler(handle)
+        .set_state(State::new())
         .start(account, address)
         .await
         .unwrap();
