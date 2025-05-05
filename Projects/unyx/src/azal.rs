@@ -33,16 +33,18 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
         Event::Chat(m) => {
             let message = m.message().to_ansi();
             
-            // Send to the channel if available
+            // Send to the channel if available?
+            // why i use ? because that's an option!!! :333
             if let Some(tx) = &*TX_LOG.lock() {
                 let _ = tx.send(ConsoleType::ServerMsg(message));
-                // let _ = tx.send(ConsoleType::Botlog("GOT MESSAGE".to_string()));
+                // let _ = tx.send(ConsoleType::Botlog("GOT MESSAGE".to_string())); // fucking idiot
             }
         }
         _ => {}
     }
     
-    // Use try_recv() instead of recv() to make it non-blocking
+    // try debug: Use try_recv() instead of recv() to make it non-blocking
+    // Oh that's work nicee :333
     let rx_input = RX_INPUT.lock();
     if let Some(rx) = &*rx_input {
         match rx.try_recv() {
@@ -59,10 +61,10 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
                 }
             }
             Err(std::sync::mpsc::TryRecvError::Empty) => {
-                // No message available, that's fine
+                // No message available, that's fine :3
             }
             Err(_) => {
-                // Channel is disconnected
+                // Channel is disconnected :/
             }
         }
     }
