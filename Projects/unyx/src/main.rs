@@ -7,7 +7,7 @@ mod azal;
 use azal::ConsoleType;
 use azal::CommandType;
 
-const SERVER_ADDRESS: &'static str = "mp.earthmc.net";
+const SERVER_ADDRESS: &'static str = "kalwi.id";
 
 #[tokio::main]
 async fn main() -> Result<()> {
