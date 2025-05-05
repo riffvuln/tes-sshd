@@ -119,7 +119,7 @@ impl RatApp {
                             _ => {}
                         },
                         InputMode::Insert if key.kind == KeyEventKind::Press => match key.code {
-                            KeyCode::Enter => self.submit_msg(tx_input),
+                            KeyCode::Enter => self.submit_msg(tx_input.clone()),
                             KeyCode::Char(to_insert) => self.enter_char(to_insert),
                             KeyCode::Backspace => self.delete_char(),
                             KeyCode::Left => self.move_cursor_left(),
