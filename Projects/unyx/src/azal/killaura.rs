@@ -25,7 +25,7 @@ pub fn tick_mob_killaura(bot: Client, state: State) -> color_eyre::Result<()> {
         let mut query = ecs
             .query_filtered::<(&MinecraftEntityId, &Position, &InstanceName), (
                 With<AbstractMonster>,
-                With<AbstractAnimal>,
+                // With<AbstractAnimal>,
                 Without<LocalEntity>,
                 Without<Dead>,
             )>();
