@@ -1,6 +1,6 @@
 use color_eyre::Result;
 use parking_lot::Mutex;
-use azalea::prelude::*;
+use azalea::{pathfinder::goals::BlockPosGoal, prelude::*, BlockPos};
 
 use std::sync::mpsc::{Receiver, Sender};
 // use std::sync::Arc;
@@ -51,6 +51,12 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
             }
             Ok(CommandType::Goto(msg)) => {
                 let msg = msg.split_whitespace().collect::<Vec<_>>();
+                if msg.len() == 3 {
+                    let x = msg[0].parse::<f32>().unwrap();
+                    let y = msg[1].parse::<f32>().unwrap();
+                    let z = msg[2].parse::<f32>().unwrap();
+                    bot.goto(BlockPosGoal(BlockPos::new(x, y, z)));
+                }
             }
             Err(std::sync::mpsc::TryRecvError::Empty) => {
                 // No message available, that's fine
