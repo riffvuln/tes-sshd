@@ -245,6 +245,15 @@ impl RatApp {
             let command = match cmd.to_lowercase().as_str() {
                 "chat" => Some(CommandType::Chat(args)),
                 "goto" => Some(CommandType::Goto(args)),
+                "mobkillaura" => {
+                    let mut enabled = false;
+                    if args == "on" {
+                        enabled = true;
+                    } else if args == "off" {
+                        enabled = false;
+                    }
+                    Some(CommandType::Mobkillaura(enabled))
+                }
                 // Add more command mappings here as needed
                 _ => None,
             };
