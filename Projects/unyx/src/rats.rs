@@ -10,7 +10,7 @@ use ratatui::{
     DefaultTerminal, Frame,
 };
 
-use crate::azal;
+use crate::azal::CommandType;
 
 
 pub struct RatApp {
@@ -77,7 +77,10 @@ impl RatApp {
         self.char_idx = 0;
     }
 
-    fn submit_msg(&mut self) {
+    fn submit_msg(&mut self, tx_input: std::sync::mpsc::Sender<azal::CommandType>) {
+        tx_input
+            .send(azal::CommandType::Chat(self.input.clone()))
+            .expect("Failed to send message");
         if let Ok(mut bot_log) = self.bot_log.lock() {
             bot_log.push(self.input.clone());
         }
@@ -116,7 +119,7 @@ impl RatApp {
                             _ => {}
                         },
                         InputMode::Insert if key.kind == KeyEventKind::Press => match key.code {
-                            KeyCode::Enter => self.submit_msg(),
+                            KeyCode::Enter => self.submit_msg(tx_input),
                             KeyCode::Char(to_insert) => self.enter_char(to_insert),
                             KeyCode::Backspace => self.delete_char(),
                             KeyCode::Left => self.move_cursor_left(),
