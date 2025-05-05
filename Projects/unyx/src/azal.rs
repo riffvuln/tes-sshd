@@ -52,9 +52,9 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
             Ok(CommandType::Goto(msg)) => {
                 let msg = msg.split_whitespace().collect::<Vec<_>>();
                 if msg.len() == 3 {
-                    let x = msg[0].parse::<f32>().unwrap();
-                    let y = msg[1].parse::<f32>().unwrap();
-                    let z = msg[2].parse::<f32>().unwrap();
+                    let x = msg[0].parse::<i32>().unwrap();
+                    let y = msg[1].parse::<i32>().unwrap();
+                    let z = msg[2].parse::<i32>().unwrap();
                     bot.goto(BlockPosGoal(BlockPos::new(x, y, z)));
                 }
             }
