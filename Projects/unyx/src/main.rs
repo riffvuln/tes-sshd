@@ -19,7 +19,7 @@ async fn main() -> Result<()> {
     let (tx_input, rx_input) = std::sync::mpsc::channel::<CommandType>();
     std::thread::spawn(move || ratatui_term(rx_log, tx_input));
     std::thread::spawn(|| deadlock_detector());
-    azal::start_azalea(SERVER_ADDRESS, tx_log).await?;
+    azal::start_azalea(SERVER_ADDRESS, tx_log, rx_input).await?;
 
     Ok(())
 }
