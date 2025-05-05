@@ -39,6 +39,7 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
             // Send to the channel if available
             if let Some(tx) = &*TX_LOG.lock() {
                 let _ = tx.send(ConsoleType::ServerMsg(message));
+                let _ = tx.send(ConsoleType::Botlog("GOT MESSAGE".to_string()));
             }
         }
         _ => {}
