@@ -40,8 +40,6 @@ pub fn tick_mob_killaura(bot: Client, state: State) -> color_eyre::Result<()> {
         }
     }
     if let Some(nearest_entity) = nearest_entity {
-        println!("attacking {:?}", nearest_entity);
-        println!("distance {:?}", nearest_distance);
         bot.attack(nearest_entity);
     }
 
