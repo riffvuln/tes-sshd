@@ -11,10 +11,10 @@ pub fn tick_mob_killaura(bot: Client, state: State) -> color_eyre::Result<()> {
     if !state.mob_killaura {
         return Ok(());
     }
+    println!("Killaura tick");
     if bot.has_attack_cooldown() {
         return Ok(());
     }
-    println!("Killaura tick");
     let mut nearest_entity = None;
     let mut nearest_distance = f64::INFINITY;
     let bot_position = bot.eye_position();
