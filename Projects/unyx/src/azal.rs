@@ -2,8 +2,8 @@ use color_eyre::Result;
 use parking_lot::Mutex;
 use azalea::prelude::*;
 
-use std::sync::mpsc::{Receiver, Sender};
-// use std::sync::Arc;
+use tokio::sync::mpsc::{Receiver, Sender};
+use std::sync::Arc;
 use once_cell::sync::Lazy;
 
 #[derive(Default, Clone, Component)]
@@ -21,11 +21,11 @@ pub enum CommandType {
 
 // Global variable to store the sender
 static TX_LOG: Lazy<Mutex<Option<Sender<ConsoleType>>>> = Lazy::new(|| Mutex::new(None));
-static RX_INPUT: Lazy<Mutex<Option<Receiver<CommandType>>>> = Lazy::new(|| Mutex::new(None));
+static RX_INPUT: Lazy<Mutex<Option<Arc<Mutex<Receiver<CommandType>>>>>> = Lazy::new(|| Mutex::new(None));
 
 async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<()> {
-    let mut lock_guard = RX_INPUT.lock();
-    let rx_input = lock_guard.as_ref().unwrap();
+    let mut rx_input_guard = RX_INPUT.lock();
+    let rx_option = rx_input_guard.as_ref();
     
     match event {
         Event::Login => {
@@ -38,40 +38,39 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
             
             // Send to the channel if available
             if let Some(tx) = &*TX_LOG.lock() {
-                let _ = tx.send(ConsoleType::ServerMsg(message));
-                // let _ = tx.send(ConsoleType::Botlog("GOT MESSAGE".to_string()));
+                let _ = tx.send(ConsoleType::ServerMsg(message)).await;
+                // let _ = tx.send(ConsoleType::Botlog("GOT MESSAGE".to_string())).await;
             }
         }
         _ => {}
     }
     
     // Use try_recv() instead of recv() to make it non-blocking
-    match rx_input.try_recv() {
-        Ok(CommandType::Chat(msg)) => {
-            bot.chat(&msg);
-        }
-        Ok(CommandType::Goto(msg)) => {
-                
-        }
-        Err(std::sync::mpsc::TryRecvError::Empty) => {
-            // No message available, that's fine
-        }
-        Err(_) => {
-            // Channel is disconnected
+    if let Some(rx_arc) = rx_option {
+        let mut rx_input = rx_arc.lock();
+        match rx_input.try_recv() {
+            Ok(CommandType::Chat(msg)) => {
+                bot.chat(&msg);
+            }
+            Ok(CommandType::Goto(_msg)) => {
+                    
+            }
+            Err(_) => {
+                // No message available or channel is disconnected, that's fine
+            }
         }
     }
+    
     Ok(())
 }
-
 fn init_handler(tx: Sender<ConsoleType>, rx: Receiver<CommandType>) {
     *TX_LOG.lock() = Some(tx);
-    *RX_INPUT.lock() = Some(rx);
+    *RX_INPUT.lock() = Some(Arc::new(Mutex::new(rx)));
 }
-
 pub async fn start_azalea(
     address: &str,
-    tx_log: std::sync::mpsc::Sender<ConsoleType>,
-    rx_input: std::sync::mpsc::Receiver<CommandType>,
+    tx_log: tokio::sync::mpsc::Sender<ConsoleType>,
+    rx_input: tokio::sync::mpsc::Receiver<CommandType>,
 ) -> Result<()> {
     let account = Account::offline("ItzBtzz");
     
