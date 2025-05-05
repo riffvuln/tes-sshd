@@ -8,7 +8,7 @@ use azalea::{
 use crate::azal::State;
 
 pub fn tick_mob_killaura(bot: Client, state: State) -> color_eyre::Result<()> {
-    println!("{state:?}");
+    println!("{}", state.mob_killaura);
     if !state.mob_killaura {
         return Ok(());
     }
