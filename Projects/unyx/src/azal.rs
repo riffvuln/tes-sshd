@@ -50,7 +50,7 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
                 bot.chat(&msg);
             }
             Ok(CommandType::Goto(msg)) => {
-                
+                let msg = msg.split_whitespace().collect::<Vec<_>>();
             }
             Err(std::sync::mpsc::TryRecvError::Empty) => {
                 // No message available, that's fine
