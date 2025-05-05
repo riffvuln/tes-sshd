@@ -24,7 +24,6 @@ static TX_LOG: Lazy<Mutex<Option<Sender<ConsoleType>>>> = Lazy::new(|| Mutex::ne
 static RX_INPUT: Lazy<Mutex<Option<Receiver<CommandType>>>> = Lazy::new(|| Mutex::new(None));
 
 async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<()> {
-    let tx_log = TX_LOG.lock();
     match event {
         Event::Login => {
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
@@ -35,7 +34,7 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
             let message = m.message().to_ansi();
             
             // Send to the channel if available
-            if let Some(tx) = &*tx_log {
+            if let Some(tx) = &*TX_LOG.lock() {
                 let _ = tx.send(ConsoleType::ServerMsg(message));
                 // let _ = tx.send(ConsoleType::Botlog("GOT MESSAGE".to_string()));
             }
