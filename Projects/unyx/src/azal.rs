@@ -24,8 +24,10 @@ static TX_LOG: Lazy<Mutex<Option<Sender<ConsoleType>>>> = Lazy::new(|| Mutex::ne
 static RX_INPUT: Lazy<Mutex<Option<Arc<Mutex<Receiver<CommandType>>>>>> = Lazy::new(|| Mutex::new(None));
 
 async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<()> {
-    let mut rx_input_guard = RX_INPUT.lock();
-    let rx_option = rx_input_guard.as_ref();
+    let rx_option = {
+        let rx_input_guard = RX_INPUT.lock();
+        rx_input_guard.as_ref().cloned()
+    };
     
     match event {
         Event::Login => {
@@ -76,7 +78,7 @@ pub async fn start_azalea(
     
     // Initialize the global sender
     init_handler(tx_log, rx_input);
-
+        .set_handler(move |bot, event, state| Box::pin(handle(bot, event, state)))
     ClientBuilder::new()
         .set_handler(handle)
         .start(account, address)
