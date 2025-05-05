@@ -78,9 +78,7 @@ impl RatApp {
     }
 
     fn submit_msg(&mut self, tx_input: std::sync::mpsc::Sender<CommandType>) {
-        tx_input
-            .send(CommandType::Chat(self.input.clone()))
-            .expect("Failed to send message");
+        self.process_command(&tx_input);
         if let Ok(mut bot_log) = self.bot_log.lock() {
             bot_log.push(self.input.clone());
         }
