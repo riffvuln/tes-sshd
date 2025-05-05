@@ -10,6 +10,8 @@ use ratatui::{
     DefaultTerminal, Frame,
 };
 
+use crate::azal;
+
 
 pub struct RatApp {
     input: String,
@@ -87,7 +89,7 @@ impl RatApp {
         new_cursor_pos.clamp(0, self.input.chars().count())
     }
 
-    pub fn run(&mut self, mut terminal: DefaultTerminal) -> Result<()> {
+    pub fn run(&mut self, mut terminal: DefaultTerminal, tx_input: std::sync::mpsc::Sender<azal::CommandType>) -> Result<()> {
         
         let mut last_draw = Instant::now();
         let draw_interval = Duration::from_millis(200);
