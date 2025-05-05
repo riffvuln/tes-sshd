@@ -77,9 +77,9 @@ impl RatApp {
         self.char_idx = 0;
     }
 
-    fn submit_msg(&mut self, tx_input: std::sync::mpsc::Sender<azal::CommandType>) {
+    fn submit_msg(&mut self, tx_input: std::sync::mpsc::Sender<CommandType>) {
         tx_input
-            .send(azal::CommandType::Chat(self.input.clone()))
+            .send(CommandType::Chat(self.input.clone()))
             .expect("Failed to send message");
         if let Ok(mut bot_log) = self.bot_log.lock() {
             bot_log.push(self.input.clone());
@@ -92,7 +92,7 @@ impl RatApp {
         new_cursor_pos.clamp(0, self.input.chars().count())
     }
 
-    pub fn run(&mut self, mut terminal: DefaultTerminal, tx_input: std::sync::mpsc::Sender<azal::CommandType>) -> Result<()> {
+    pub fn run(&mut self, mut terminal: DefaultTerminal, tx_input: std::sync::mpsc::Sender<CommandType>) -> Result<()> {
         
         let mut last_draw = Instant::now();
         let draw_interval = Duration::from_millis(200);
