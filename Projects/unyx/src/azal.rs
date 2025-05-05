@@ -36,7 +36,7 @@ pub enum CommandType {
 static TX_LOG: Lazy<Mutex<Option<Sender<ConsoleType>>>> = Lazy::new(|| Mutex::new(None));
 static RX_INPUT: Lazy<Mutex<Option<Receiver<CommandType>>>> = Lazy::new(|| Mutex::new(None));
 
-async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<()> {
+async fn handle(bot: Client, event: Event, mut state: State) -> color_eyre::Result<()> {
     match event {
         Event::Login => {
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
