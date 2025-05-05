@@ -24,7 +24,7 @@ static TX_LOG: Lazy<Mutex<Option<Sender<ConsoleType>>>> = Lazy::new(|| Mutex::ne
 static RX_INPUT: Lazy<Mutex<Option<Receiver<CommandType>>>> = Lazy::new(|| Mutex::new(None));
 
 async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<()> {
-    let rx_input = &RX_INPUT.lock().unwrap();
+    let rx_input = RX_INPUT.lock().as_ref().unwrap();
     
     match event {
         Event::Login => {
