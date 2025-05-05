@@ -5,6 +5,7 @@ mod rats;
 mod azal;
 
 use azal::ConsoleType;
+use azal::CommandType;
 
 const SERVER_ADDRESS: &'static str = "campfiresmp.mc.gg";
 
@@ -15,7 +16,8 @@ async fn main() -> Result<()> {
     }
     color_eyre::install()?;
     let (tx_log, rx_log) = std::sync::mpsc::channel::<ConsoleType>();
-    std::thread::spawn(move || ratatui_term(rx_log));
+    let (tx_input, rx_input) = std::sync::mpsc::channel::<CommandType>();
+    std::thread::spawn(move || ratatui_term(rx_log, tx_input));
     std::thread::spawn(|| deadlock_detector());
     azal::start_azalea(SERVER_ADDRESS, tx_log).await?;
 
@@ -41,7 +43,10 @@ fn deadlock_detector() {
     }
 }
 
-fn ratatui_term(rx: std::sync::mpsc::Receiver<ConsoleType>) -> Result<()> {
+fn ratatui_term(
+    rx_log: std::sync::mpsc::Receiver<ConsoleType>, 
+    tx_input: std::sync::mpsc::Sender<CommandType>,
+) -> Result<()> {
     let terminal = ratatui::init();
     let mut rat_app = rats::RatApp::new();
     
@@ -51,7 +56,7 @@ fn ratatui_term(rx: std::sync::mpsc::Receiver<ConsoleType>) -> Result<()> {
 
     std::thread::spawn(move || {
         loop {
-            match rx.recv() {
+            match rx_log.recv() {
                 Ok(ConsoleType::Botlog(msg)) => {
                     let mut bot_log = bot_log_clone.lock().unwrap();
                     bot_log.push(msg);
@@ -66,7 +71,7 @@ fn ratatui_term(rx: std::sync::mpsc::Receiver<ConsoleType>) -> Result<()> {
     });
     
     
-    let app_result = rat_app.run(terminal);
+    let app_result = rat_app.run(terminal, tx_input);
     ratatui::restore();
     app_result
 }
