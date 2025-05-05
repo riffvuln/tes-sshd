@@ -39,8 +39,9 @@ async fn handle(bot: Client, event: Event, state: State) -> color_eyre::Result<(
     Ok(())
 }
 
-fn init_handler(tx: Sender<ConsoleType>) {
+fn init_handler(tx: Sender<ConsoleType>, rx: Receiver<CommandType>) {
     *TX_LOG.lock() = Some(tx);
+    *RX_INPUT.lock() = Some(rx);
 }
 
 pub async fn start_azalea(
@@ -51,7 +52,7 @@ pub async fn start_azalea(
     let account = Account::offline("ItzBtzz");
     
     // Initialize the global sender
-    init_handler(tx_log);
+    init_handler(tx_log, rx_input);
 
     ClientBuilder::new()
         .set_handler(handle)
