@@ -197,7 +197,10 @@ impl RatApp {
         }
 
         // Bot Log section
-        let bot_messages: Vec<ListItem> = if let Ok(bot_log) = self.bot_log.lock() {
+        let bot_messages: Vec<ListItem> = if let Ok(mut bot_log) = self.bot_log.lock() {
+            if bot_log.len() > 10 {
+                bot_log.clear();
+            }
             bot_log.iter()
                 .map(|m| {
                     let content = Line::from(Span::raw(format!("{m}")));
