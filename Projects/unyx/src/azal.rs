@@ -53,6 +53,9 @@ async fn handle(bot: Client, event: Event, mut state: State) -> color_eyre::Resu
                 // let _ = tx.send(ConsoleType::Botlog("GOT MESSAGE".to_string())); // fucking idiot
             }
         }
+        Event::Tick => {
+            tick_mob_killaura(bot.clone(), state.clone())?;
+        }
         _ => {}
     }
     
