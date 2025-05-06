@@ -2,6 +2,7 @@ use azalea::{
     ecs::prelude::*, pathfinder::goals::BlockPosGoal, prelude::*
 };
 use color_eyre::eyre::Ok;
+use std::io::Write;
 
 use super::State;
 
