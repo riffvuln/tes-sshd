@@ -10,9 +10,9 @@ use crate::azal::State;
 
 pub fn tick_mob_killaura(bot: Client, state: State) -> color_eyre::Result<()> {
     // println!("{}", state.mob_killaura);
-    if !state.mob_killaura {
-        return Ok(());
-    }
+    // if !state.mob_killaura {
+    //     return Ok(());
+    // }
     // println!("Killaura tick");
     if bot.has_attack_cooldown() {
         return Ok(());
@@ -70,3 +70,4 @@ pub fn tick_mob_killaura(bot: Client, state: State) -> color_eyre::Result<()> {
 
     Ok(())
 }
+

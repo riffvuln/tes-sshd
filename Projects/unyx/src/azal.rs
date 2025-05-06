@@ -85,7 +85,7 @@ async fn handle(bot: Client, event: Event, mut state: State) -> color_eyre::Resu
                     bot.chat("Invalid coordinates");
                 }
             }
-            Ok(CommandType::Mobkillaura(mut enabled)) => {
+            Ok(CommandType::Mobkillaura(enabled)) => {
                 state.mob_killaura = enabled;
             }
             Err(std::sync::mpsc::TryRecvError::Empty) => {
