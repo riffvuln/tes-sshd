@@ -24,9 +24,6 @@ pub fn mine_by_block_id(bot: Client, state: State, block_id: i32, quantity: i32)
         writeln!(f, "{pos:?}").unwrap();
     }
     for block in blocks {
-        if mined >= quantity {
-            break;
-        }
         bot.goto(BlockPosGoal(block));
         // bot.start_mining(block);
         mined += 1;
