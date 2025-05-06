@@ -61,7 +61,7 @@ pub fn tick_mob_killaura(bot: Client, state: State) -> color_eyre::Result<()> {
         bot.attack(nearest_entity);
     } 
     // Second priority: Move towards a mob that's out of attack range but within pathfinding range
-    else if let Some(position) = nearest_targetable_position {
+    else if let Some(position) = nearest_targetable_position && !state.is_on_task {
         bot.goto(XZGoal { 
             x: position.x as i32, 
             z: position.z as i32 
