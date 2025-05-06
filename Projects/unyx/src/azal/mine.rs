@@ -19,8 +19,8 @@ pub fn mine_by_block_id(bot: Client, state: State, block_id: i32, quantity: i32)
     let blocks = readed_world.find_blocks(bot.position(), &block_states);
     let mut f = std::fs::File::create("blocks.txt")?;
     for block in blocks {
-        let pos = block.position();
-        writeln!(f, "{pos}").unwrap();
+        let pos = (block.x, block.y, block.z);
+        writeln!(f, "{pos:?}").unwrap();
     }
     for block in blocks {
         if mined >= quantity {
