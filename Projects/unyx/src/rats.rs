@@ -254,9 +254,7 @@ impl RatApp {
                     }
                     Some(CommandType::Mobkillaura(enabled))
                 }
-                "mine" => {
-                    Some(CommandType::Mine(args))),
-                }
+                "mine" => Some(CommandType::Mine(args)),
                 // Add more command mappings here as needed
                 _ => None,
             };
