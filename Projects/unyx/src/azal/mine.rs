@@ -17,10 +17,10 @@ pub fn mine_by_block_id(bot: Client, mut state: State, block_id: i32, quantity: 
     let block_states = azalea::blocks::BlockStates::from(block_state);
     let world = bot.world();
     let readed_world = world.read();
-    let blocks = readed_world.find_blocks(bot.position(), &block_states).collect::<Vec<_>>();
+    let mut blocks = readed_world.find_blocks(bot.position(), &block_states).collect::<Vec<_>>();
     let mut f = std::fs::File::create("blocks.txt")?;
     let mut vec_blocks = Vec::new();
-    for block in blocks {
+    for block in blocks.split_off(quantity as usize) {
         let pos = (block.x, block.y, block.z);
         vec_blocks.push(block);
         writeln!(f, "{pos:?}").unwrap();
