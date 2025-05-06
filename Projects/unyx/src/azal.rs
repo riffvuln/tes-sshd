@@ -13,6 +13,7 @@ use killaura::tick_mob_killaura;
 #[derive(Default, Clone, Component)]
 pub struct State {
     pub mob_killaura: bool,
+    pub queue_task: Vec<CommandType>,
 }
 
 impl State {
