@@ -1,6 +1,5 @@
 use azalea::{
-    ecs::prelude::*,
-    prelude::*,
+    ecs::prelude::*, pathfinder::goals::BlockPosGoal, prelude::*
 };
 use color_eyre::eyre::Ok;
 
@@ -20,7 +19,7 @@ pub fn mine_by_block_id(bot: Client, state: State, block_id: i32, quantity: i32)
         if mined >= quantity {
             break;
         }
-        
+        bot.goto(BlockPosGoal(block));
     }
     Ok(())
 }
