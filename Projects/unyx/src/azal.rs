@@ -55,7 +55,9 @@ async fn handle(bot: Client, event: Event, mut state: State) -> color_eyre::Resu
             }
         }
         Event::Tick => {
-            tick_mob_killaura(bot.clone(), state.clone())?;
+            if state.mob_killaura {
+                tick_mob_killaura(bot.clone(), state.clone())?;
+            }
         }
         _ => {}
     }
