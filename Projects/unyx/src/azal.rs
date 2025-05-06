@@ -13,12 +13,16 @@ use killaura::tick_mob_killaura;
 #[derive(Default, Clone, Component)]
 pub struct State {
     pub mob_killaura: bool,
-    pub queue_task: Vec<Option<CommandType>>,
+    queue_task: Vec<Option<CommandType>>,
 }
 
 impl State {
     pub fn new() -> Self {
         Self { mob_killaura: true, queue_task: Vec::from([None]) }
+    }
+    pub fn set_queue_task(&mut self, task: CommandType) -> usize {
+        self.queue_task.push(Some(task));
+        self.queue_task.len() - 1
     }
 }
 
