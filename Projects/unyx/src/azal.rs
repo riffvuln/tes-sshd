@@ -58,23 +58,25 @@ async fn handle(bot: Client, event: Event, mut state: State) -> color_eyre::Resu
             }
         }
         Event::Tick => {
-            match state.curr_command {
-                None => {
-                    if let Some(cmd) = state.queue.get(0).cloned() {
-                        if cmd != CommandType::None {
-                            state.curr_command = Some(cmd);
-                            state.queue.remove(0);
-                        } else {
-                            if let Some(cmd) = state.queue.get(1).cloned() {
+            if !state.queue.is_empty() && (state.queue.len() > 1 || state.queue[0] != CommandType::None) {
+                match state.curr_command {
+                    None => {
+                        if let Some(cmd) = state.queue.get(0).cloned() {
+                            if cmd != CommandType::None {
                                 state.curr_command = Some(cmd);
-                                state.queue.remove(1);
+                                state.queue.remove(0);
                             } else {
-                                // state.curr_command = None;
+                                if let Some(cmd) = state.queue.get(1).cloned() {
+                                    state.curr_command = Some(cmd);
+                                    state.queue.remove(1);
+                                } else {
+                                    // state.curr_command = None;
+                                }
                             }
                         }
                     }
+                    Some(_) => {}
                 }
-                Some(_) => {}
             }
             tick_mob_killaura(bot.clone(), state.clone())?;
         }
