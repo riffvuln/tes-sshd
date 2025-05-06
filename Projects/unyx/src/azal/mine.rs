@@ -25,5 +25,6 @@ pub fn mine_by_block_id(bot: Client, state: State, block_id: i32, quantity: i32)
         // bot.start_mining(block);
         mined += 1;
     }
+    println!("Mined {mined} blocks of {block_id}");
     Ok(())
 }
