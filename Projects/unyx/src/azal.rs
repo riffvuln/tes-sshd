@@ -32,7 +32,8 @@ pub enum ConsoleType {
 pub enum CommandType {
     Chat(String),
     Goto(String),
-    Mobkillaura(bool)
+    Mobkillaura(bool),
+    None,
 }
 
 // Global variable to store the sender
@@ -60,8 +61,17 @@ async fn handle(bot: Client, event: Event, mut state: State) -> color_eyre::Resu
             match state.curr_command {
                 None => {
                     if let Some(cmd) = state.queue.get(0).cloned() {
-                        state.curr_command = Some(cmd);
-                        state.queue.remove(0);
+                        if cmd != CommandType::None {
+                            state.curr_command = Some(cmd);
+                            state.queue.remove(0);
+                        } else {
+                            if let Some(cmd) = state.queue.get(1).cloned() {
+                                state.curr_command = Some(cmd);
+                                state.queue.remove(1);
+                            } else {
+                                // state.curr_command = None;
+                            }
+                        }
                     }
                 }
                 Some(_) => {}
