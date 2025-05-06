@@ -15,7 +15,7 @@ use mine::mine_by_block_id;
 #[derive(Default, Clone, Component)]
 pub struct State {
     pub mob_killaura: bool,
-    is_on_task: bool
+    pub is_on_task: bool
 }
 
 impl State {
