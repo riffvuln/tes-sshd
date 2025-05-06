@@ -20,10 +20,13 @@ pub fn mine_by_block_id(bot: Client, mut state: State, block_id: i32, quantity: 
     let mut blocks = readed_world.find_blocks(bot.position(), &block_states).collect::<Vec<_>>();
     let mut f = std::fs::File::create("blocks.txt")?;
     let mut vec_blocks = Vec::new();
+    let mut counter = 0;
     for block in blocks.split_off(quantity as usize) {
-        let pos = (block.x, block.y, block.z);
-        vec_blocks.push(block);
-        writeln!(f, "{pos:?}").unwrap();
+        if counter <= quantity as usize {
+            let pos = (block.x, block.y, block.z);
+            vec_blocks.push(block);
+            writeln!(f, "{pos:?}").unwrap();
+        }
     }
     for block in vec_blocks {
         state.is_on_task = true;
