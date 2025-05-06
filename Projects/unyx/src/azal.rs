@@ -4,7 +4,7 @@ mod killaura;
 // Re-exports
 use color_eyre::Result;
 use parking_lot::Mutex;
-use azalea::{pathfinder::goals::BlockPosGoal, prelude::*, BlockPos};
+use azalea::{pathfinder::goals::{BlockPosGoal, XZGoal}, prelude::*, BlockPos};
 use std::sync::mpsc::{Receiver, Sender};
 use once_cell::sync::Lazy;
 use killaura::tick_mob_killaura;
@@ -77,6 +77,12 @@ async fn handle(bot: Client, event: Event, mut state: State) -> color_eyre::Resu
                     let y = msg[1].parse::<i32>().unwrap();
                     let z = msg[2].parse::<i32>().unwrap();
                     bot.goto(BlockPosGoal(BlockPos::new(x, y, z)));
+                } else if msg.len() == 2 {
+                    let x = msg[0].parse::<i32>().unwrap();
+                    let z = msg[1].parse::<i32>().unwrap();
+                    bot.goto(XZGoal { x: x, z: z});
+                } else {
+                    bot.chat("Invalid coordinates");
                 }
             }
             Ok(CommandType::Mobkillaura(mut enabled)) => {
