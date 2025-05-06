@@ -26,6 +26,7 @@ pub fn mine_by_block_id(bot: Client, mut state: State, block_id: i32, quantity: 
             let pos = (block.x, block.y, block.z);
             vec_blocks.push(block);
             writeln!(f, "{pos:?}").unwrap();
+            counter += 1;
         } else {
             break;
         }
