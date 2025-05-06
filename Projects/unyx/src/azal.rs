@@ -18,7 +18,7 @@ pub struct State {
 
 impl State {
     pub fn new() -> Self {
-        Self { mob_killaura: true, queue_task: Vec::from(None) }
+        Self { mob_killaura: true, queue_task: Vec::from([None]) }
     }
 }
 
