@@ -30,7 +30,8 @@ pub enum ConsoleType {
 pub enum CommandType {
     Chat(String),
     Goto(String),
-    Mobkillaura(bool)
+    Mobkillaura(bool),
+    Mine(String),
 }
 
 // Global variable to store the sender
@@ -87,6 +88,17 @@ async fn handle(bot: Client, event: Event, mut state: State) -> color_eyre::Resu
             }
             Ok(CommandType::Mobkillaura(enabled)) => {
                 state.mob_killaura = enabled;
+            }
+            Ok(CommandType::Mine(block)) => {
+                let block = block.split_whitespace().collect::<Vec<_>>();
+                if block.len() == 3 {
+                    let x = block[0].parse::<i32>().unwrap();
+                    let y = block[1].parse::<i32>().unwrap();
+                    let z = block[2].parse::<i32>().unwrap();
+                    bot.goto(BlockPosGoal(BlockPos::new(x, y, z)));
+                } else {
+                    bot.chat("Invalid coordinates");
+                }
             }
             Err(std::sync::mpsc::TryRecvError::Empty) => {
                 // No message available, that's fine :3
