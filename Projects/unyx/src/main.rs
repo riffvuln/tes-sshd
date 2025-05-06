@@ -7,7 +7,7 @@ mod azal;
 use azal::ConsoleType;
 use azal::CommandType;
 
-const SERVER_ADDRESS: &'static str = "RifaiNq.aternos.me";
+const SERVER_ADDRESS: &'static str = "RifaiNq.aternos.me:26222";
 
 #[tokio::main]
 async fn main() -> Result<()> {
