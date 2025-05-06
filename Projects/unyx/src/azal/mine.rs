@@ -19,8 +19,10 @@ pub fn mine_by_block_id(bot: Client, mut state: State, block_id: i32, quantity: 
     let readed_world = world.read();
     let blocks = readed_world.find_blocks(bot.position(), &block_states).collect::<Vec<_>>();
     let mut f = std::fs::File::create("blocks.txt")?;
+    let mut vec_blocks = Vec::new();
     for block in &blocks {
         let pos = (block.x, block.y, block.z);
+        vec_blocks.push(block);
         writeln!(f, "{pos:?}").unwrap();
     }
     for block in blocks {
