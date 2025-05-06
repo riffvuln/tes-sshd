@@ -13,13 +13,11 @@ use killaura::tick_mob_killaura;
 #[derive(Default, Clone, Component)]
 pub struct State {
     pub mob_killaura: bool,
-    curr_command: Option<CommandType>,
-    queue: Vec<CommandType>,
 }
 
 impl State {
     pub fn new() -> Self {
-        Self { mob_killaura: true, curr_command: None, queue: Vec::new() }
+        Self { mob_killaura: true}
     }
 }
 
@@ -28,12 +26,11 @@ pub enum ConsoleType {
     ServerMsg(String),
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone)]
 pub enum CommandType {
     Chat(String),
     Goto(String),
-    Mobkillaura(bool),
-    None,
+    Mobkillaura(bool)
 }
 
 // Global variable to store the sender
@@ -58,26 +55,6 @@ async fn handle(bot: Client, event: Event, mut state: State) -> color_eyre::Resu
             }
         }
         Event::Tick => {
-            if !state.queue.is_empty() && (state.queue.len() > 1 || state.queue[0] != CommandType::None) {
-                match state.curr_command {
-                    None => {
-                        if let Some(cmd) = state.queue.get(0).cloned() {
-                            if cmd != CommandType::None {
-                                state.curr_command = Some(cmd);
-                                state.queue.remove(0);
-                            } else {
-                                if let Some(cmd) = state.queue.get(1).cloned() {
-                                    state.curr_command = Some(cmd);
-                                    state.queue.remove(1);
-                                } else {
-                                    // state.curr_command = None;
-                                }
-                            }
-                        }
-                    }
-                    Some(_) => {}
-                }
-            }
             tick_mob_killaura(bot.clone(), state.clone())?;
         }
         _ => {}
@@ -88,9 +65,6 @@ async fn handle(bot: Client, event: Event, mut state: State) -> color_eyre::Resu
     let rx_input = RX_INPUT.lock();
     if let Some(rx) = &*rx_input {
         match rx.try_recv() {
-            Ok(CommandType::None) => {
-                // No command to process
-            }
             Ok(CommandType::Chat(msg)) => {
                 bot.chat(&msg);
             }
