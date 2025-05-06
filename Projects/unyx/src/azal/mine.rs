@@ -14,7 +14,7 @@ pub fn mine_by_block_id(bot: Client, state: State, block_id: i32, quantity: i32)
     let block_state = unsafe {
         azalea::registry::Block::from_u32_unchecked(block_id as u32)
     };
-    let block_states = azalea::azalea_block::BlockStates::from(block_state);
+    let block_states = azalea::blocks::BlockStates::from(block_state);
     let blocks = bot.world().read().find_blocks(bot.position(), &block_states);
 
     Ok(())
