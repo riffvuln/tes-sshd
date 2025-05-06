@@ -28,7 +28,7 @@ pub enum ConsoleType {
     ServerMsg(String),
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum CommandType {
     Chat(String),
     Goto(String),
@@ -86,6 +86,9 @@ async fn handle(bot: Client, event: Event, mut state: State) -> color_eyre::Resu
     let rx_input = RX_INPUT.lock();
     if let Some(rx) = &*rx_input {
         match rx.try_recv() {
+            Ok(CommandType::None) => {
+                // No command to process
+            }
             Ok(CommandType::Chat(msg)) => {
                 bot.chat(&msg);
             }
