@@ -27,6 +27,7 @@ pub enum ConsoleType {
     ServerMsg(String),
 }
 
+#[derive(Clone)]
 pub enum CommandType {
     Chat(String),
     Goto(String),
