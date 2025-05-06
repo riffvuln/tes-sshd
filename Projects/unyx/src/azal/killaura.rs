@@ -2,6 +2,7 @@ use azalea::{
     ecs::prelude::*,
     entity::{metadata::{AbstractAnimal, AbstractMonster}, Dead, LocalEntity, Position},
     prelude::*,
+    pathfinder::goals::XZGoal,
     world::{InstanceName, MinecraftEntityId},
 };
 
@@ -16,8 +17,13 @@ pub fn tick_mob_killaura(bot: Client, state: State) -> color_eyre::Result<()> {
     if bot.has_attack_cooldown() {
         return Ok(());
     }
-    let mut nearest_entity = None;
-    let mut nearest_distance = f64::INFINITY;
+    
+    let mut nearest_attackable_entity = None;
+    let mut nearest_attackable_distance = f64::INFINITY;
+    let mut nearest_targetable_entity = None;
+    let mut nearest_targetable_distance = f64::INFINITY;
+    let mut nearest_targetable_position = None;
+    
     let bot_position = bot.eye_position();
     let bot_instance_name = bot.component::<InstanceName>();
     {
@@ -35,14 +41,31 @@ pub fn tick_mob_killaura(bot: Client, state: State) -> color_eyre::Result<()> {
             }
 
             let distance = bot_position.distance_to(position);
-            if distance < 4. && distance < nearest_distance {
-                nearest_entity = Some(entity_id);
-                nearest_distance = distance;
+            
+            // If within attack range (4 blocks)
+            if distance < 4.0 && distance < nearest_attackable_distance {
+                nearest_attackable_entity = Some(entity_id);
+                nearest_attackable_distance = distance;
+            } 
+            // If outside attack range but within pathfinding range (10 blocks)
+            else if distance < 10.0 && distance < nearest_targetable_distance {
+                nearest_targetable_entity = Some(entity_id);
+                nearest_targetable_distance = distance;
+                nearest_targetable_position = Some(position.clone());
             }
         }
     }
-    if let Some(nearest_entity) = nearest_entity {
+    
+    // First priority: Attack if a mob is within attack range
+    if let Some(nearest_entity) = nearest_attackable_entity {
         bot.attack(nearest_entity);
+    } 
+    // Second priority: Move towards a mob that's out of attack range but within pathfinding range
+    else if let Some(position) = nearest_targetable_position {
+        bot.goto(XZGoal { 
+            x: position.x, 
+            z: position.z 
+        });
     }
 
     Ok(())
