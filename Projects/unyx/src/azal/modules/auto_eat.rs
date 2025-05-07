@@ -70,7 +70,12 @@ impl Plugin for AutoEatPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             GameTick,
-
+            Self::handle_auto_eat
+                .after(GameTickPlugin::handle_game_ticks)
+                .before(handle_outgoing_packets)
+                .before(continue_mining_block)
+                .before(InventorySet)
+                .before(PhysicsSet),
         )
     }
 }
