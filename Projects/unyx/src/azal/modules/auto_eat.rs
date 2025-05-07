@@ -66,6 +66,7 @@ pub static FOOD_ITEMS: LazyLock<HashMap<Item, (i32, f32)>> = LazyLock::new(|| {
 
 pub struct AutoEatPlugin {}
 
+
 impl Plugin for AutoEatPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
@@ -76,7 +77,7 @@ impl Plugin for AutoEatPlugin {
                 .before(continue_mining_block)
                 .before(InventorySet)
                 .before(PhysicsSet),
-        )
+        );
     }
 }
 
