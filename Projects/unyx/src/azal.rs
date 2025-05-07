@@ -14,7 +14,7 @@ use std::sync::mpsc::{Receiver, Sender};
 use once_cell::sync::Lazy;
 use killaura::tick_mob_killaura;
 use mine::mine_by_block_id;
-pub use crate::prelude::*;
+pub use prelude::*;
 
 #[derive(Default, Clone, Component)]
 pub struct State {
