@@ -3469,6 +3469,7 @@ dependencies = [
  "azalea",
  "bounded-counter",
  "color-eyre",
+ "derive_more 2.0.1",
  "once_cell",
  "parking_lot",
  "ratatui",
