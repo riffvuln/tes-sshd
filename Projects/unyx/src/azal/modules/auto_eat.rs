@@ -23,6 +23,8 @@ use azalea::{
     Hunger,
 };
 
+extern crate::prelude::*;
+
 pub static FOOD_ITEMS: LazyLock<HashMap<Item, (i32, f32)>> = LazyLock::new(|| {
     HashMap::from([
         (Item::Apple, (4, 2.4)),
