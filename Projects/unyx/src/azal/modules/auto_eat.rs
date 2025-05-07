@@ -113,10 +113,6 @@ impl AutoEatPlugin {
                     });
     
                     if let Some((slot, _, _)) = food_slots.first() {
-                        debug!(
-                            "Swapping Food from {slot} to {}",
-                            inventory.selected_hotbar_slot
-                        );
                         container_click_events.send(ContainerClickEvent {
                             entity,
                             window_id: inventory.id,
@@ -139,7 +135,7 @@ impl AutoEatPlugin {
                     sent_by: entity,
                     packet,
                 });
-                }
+                
         }
     }
 }
