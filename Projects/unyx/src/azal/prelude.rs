@@ -1,3 +1,3 @@
 pub use super::{
-    trackers:game_tick::*;
-}
+    trackers::game_tick::*;
+};
