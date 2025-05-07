@@ -96,6 +96,50 @@ impl AutoEatPlugin {
                 if hunger.food >= 18 {
                     continue;
                 }
+                if !FOOD_ITEMS.contains_key(&invetory.held_item().kind()) {
+                    let mut food_slots = Vec::new();
+                    for slot in invetory.inventory_menu.player_slots_range() {
+                        let Some(item) = invetory.get(slot) else {
+                            continue;
+                        };
+                        if let Some((nutrition, saturation)) = FOOD_ITEMS.get(&item.kind()) {
+                            food_slots.push((slot, *nutrition, *saturation));
+                        }
+                    }
+                    food_slots.sort_by(|a, b| {
+                        b.2.partial_cmp(&a.2)
+                            .unwrap_or(Ordering::Equal)
+                            .then_with(|| b.1.cmp(&a.1))
+                    });
+    
+                    if let Some((slot, _, _)) = food_slots.first() {
+                        debug!(
+                            "Swapping Food from {slot} to {}",
+                            inventory.selected_hotbar_slot
+                        );
+                        container_click_events.send(ContainerClickEvent {
+                            entity,
+                            window_id: inventory.id,
+                            operation: ClickOperation::Swap(SwapClick {
+                                source_slot: u16::try_from(*slot).unwrap(),
+                                target_slot: inventory.selected_hotbar_slot,
+                            }),
+                        });
+                    }
+                }
+    
+                let packet = ServerboundGamePacket::UseItem(ServerboundUseItem {
+                    hand:     InteractionHand::MainHand,
+                    pitch:    direction.x_rot,
+                    yaw:      direction.y_rot,
+                    sequence: 0,
+                });
+    
+                packet_events.send(SendPacketEvent {
+                    sent_by: entity,
+                    packet,
+                });
+                }
         }
     }
 }
