@@ -96,7 +96,7 @@ async fn handle(bot: Client, event: Event, mut state: State) -> color_eyre::Resu
                 let msg = msg.split_whitespace().collect::<Vec<_>>();
                 let block_id = msg[0].parse::<i32>().unwrap();
                 let quantity = msg[1].parse::<i32>().unwrap();
-                mine_by_block_id(bot.clone(), state.clone(), block_id, quantity);
+                mine_by_block_id(bot.clone(), state.clone(), block_id, quantity)?;
             }
             Err(std::sync::mpsc::TryRecvError::Empty) => {
                 // No message available, that's fine :3
