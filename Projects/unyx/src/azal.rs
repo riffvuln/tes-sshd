@@ -3,6 +3,7 @@ mod killaura;
 mod mine;
 mod modules;
 mod trackers;
+pub mod prelude;
 
 // Re-exports
 use color_eyre::Result;
