@@ -5,6 +5,8 @@ use azalea::{
     prelude::*,
 };
 use bounded_counter::BoundedCounter;
+use std::ops::{Deref, DerefMut};
+use derive_more::{Deref, DerefMut};
 
 /// Tracks game ticks for counting intervals
 pub struct GameTickPlugin;
