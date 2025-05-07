@@ -73,3 +73,27 @@ impl Plugin for AutoEatPlugin {
     }
 }
 
+type QuerySet<'a> = (
+    Entity,
+    &'a GameTick,
+    &'a Hunger,
+    &'a Inventory,
+    &'a LookDirection,
+);
+
+type QueryFilter = (With<Player>, With<LocalEntity>);
+
+impl AutoEatPlugin {
+    // Panic if slot > u16
+    fn handle_auto_eat(
+        mut query: Query<QuerySet, QueryFilter>,
+        mut packet_events: EventWriter<SendPacketEvent>,
+        mut container_click_events: EventWriter<ContainerClickEvent>,
+    ) {
+        for(entity, game_ticks, hunger, invetory, direction) in &mut query {
+            if hunger.food() >= 18 {
+                continue;
+            }
+        }
+    }
+}
