@@ -64,7 +64,7 @@ pub static FOOD_ITEMS: LazyLock<HashMap<Item, (i32, f32)>> = LazyLock::new(|| {
     ])
 });
 
-pub struct AutoEatPlugin {}
+pub struct AutoEatPlugin;
 
 
 impl Plugin for AutoEatPlugin {
