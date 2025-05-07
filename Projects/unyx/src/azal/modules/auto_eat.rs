@@ -23,7 +23,7 @@ use azalea::{
     Hunger,
 };
 
-extern super::trackers::game_tick::*;
+use super::trackers::game_tick::*;
 
 pub static FOOD_ITEMS: LazyLock<HashMap<Item, (i32, f32)>> = LazyLock::new(|| {
     HashMap::from([
