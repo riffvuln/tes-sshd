@@ -2,6 +2,7 @@
 mod killaura;
 mod mine;
 mod modules;
+mod trackers;
 
 // Re-exports
 use color_eyre::Result;
