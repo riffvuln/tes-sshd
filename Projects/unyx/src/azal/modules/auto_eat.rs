@@ -118,7 +118,7 @@ impl AutoEatPlugin {
                             window_id: invetory.id,
                             operation: ClickOperation::Swap(SwapClick {
                                 source_slot: u16::try_from(*slot).unwrap(),
-                                target_slot: inventory.selected_hotbar_slot,
+                                target_slot: invetory.selected_hotbar_slot,
                             }),
                         });
                     }
