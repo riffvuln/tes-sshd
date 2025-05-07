@@ -89,7 +89,6 @@ impl AutoEatPlugin {
         mut packet_events: EventWriter<SendPacketEvent>,
         mut container_click_events: EventWriter<ContainerClickEvent>,
     ) {
-        for(entity, game_ticks, hunger, invetory, direction) in &mut query {
         for(entity, hunger, invetory, direction) in &mut query {
                 continue;
             }
