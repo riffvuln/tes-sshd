@@ -93,7 +93,7 @@ impl AutoEatPlugin {
         mut container_click_events: EventWriter<ContainerClickEvent>,
     ) {
         for(entity, game_ticks, hunger, invetory, direction) in &mut query {
-                if hunger.food() >= 18 {
+                if hunger.food >= 18 {
                     continue;
                 }
         }
