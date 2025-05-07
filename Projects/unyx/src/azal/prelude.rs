@@ -1,3 +1,1 @@
-pub use super::{
-    trackers::game_tick::*;
-};
+pub use super::trackers::game_tick::*;
