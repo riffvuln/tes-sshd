@@ -75,6 +75,7 @@ impl Plugin for AutoEatPlugin {
 
 type QuerySet<'a> = (
     Entity,
+    &'a GameTicks,
     &'a Hunger,
     &'a Inventory,
     &'a LookDirection,
@@ -89,10 +90,11 @@ impl AutoEatPlugin {
         mut packet_events: EventWriter<SendPacketEvent>,
         mut container_click_events: EventWriter<ContainerClickEvent>,
     ) {
-        for(entity, hunger, invetory, direction) in &mut query {
+        for(entity, game_ticks, hunger, invetory, direction) in &mut query {
                 if hunger.food() >= 18 {
                     continue;
                 }
+
             }
         }
     }
