@@ -8,6 +8,7 @@ mod trackers;
 use color_eyre::Result;
 use parking_lot::Mutex;
 use azalea::{pathfinder::goals::{BlockPosGoal, XZGoal}, prelude::*, BlockPos};
+use trackers::TrackersGroup;
 use std::sync::mpsc::{Receiver, Sender};
 use once_cell::sync::Lazy;
 use killaura::tick_mob_killaura;
@@ -127,6 +128,7 @@ pub async fn start_azalea(
     init_handler(tx_log, rx_input);
 
     ClientBuilder::new()
+        .add_plugins(TrackersGroup)
         .set_handler(handle)
         .set_state(State::new())
         .start(account, address)
