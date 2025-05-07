@@ -7,6 +7,7 @@ pub mod prelude;
 
 // Re-exports
 use color_eyre::Result;
+use modules::ModulesPluginGroup;
 use parking_lot::Mutex;
 use azalea::{pathfinder::goals::{BlockPosGoal, XZGoal}, prelude::*, BlockPos};
 use trackers::TrackersGroup;
@@ -130,6 +131,7 @@ pub async fn start_azalea(
 
     ClientBuilder::new()
         .add_plugins(TrackersGroup)
+        .add_plugins(ModulesPluginGroup)
         .set_handler(handle)
         .set_state(State::new())
         .start(account, address)
