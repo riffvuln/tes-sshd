@@ -115,7 +115,7 @@ impl AutoEatPlugin {
                     if let Some((slot, _, _)) = food_slots.first() {
                         container_click_events.send(ContainerClickEvent {
                             entity,
-                            window_id: inventory.id,
+                            window_id: invetory.id,
                             operation: ClickOperation::Swap(SwapClick {
                                 source_slot: u16::try_from(*slot).unwrap(),
                                 target_slot: inventory.selected_hotbar_slot,
