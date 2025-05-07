@@ -1,6 +1,7 @@
 pub mod auto_eat;
 
 use azalea::app::{PluginGroup, PluginGroupBuilder};
+use auto_eat::AutoEatPlugin;
 
 
 pub struct ModulesPluginGroup;
