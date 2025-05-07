@@ -99,7 +99,7 @@ impl AutoEatPlugin {
                 if !FOOD_ITEMS.contains_key(&invetory.held_item().kind()) {
                     let mut food_slots = Vec::new();
                     for slot in invetory.inventory_menu.player_slots_range() {
-                        let Some(item) = invetory.get(slot) else {
+                        let Some(item) = invetory.inventory_menu.slot(slot) else {
                             continue;
                         };
                         if let Some((nutrition, saturation)) = FOOD_ITEMS.get(&item.kind()) {
