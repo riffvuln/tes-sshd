@@ -94,8 +94,6 @@ impl AutoEatPlugin {
                 if hunger.food() >= 18 {
                     continue;
                 }
-
-            }
         }
     }
 }
