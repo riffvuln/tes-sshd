@@ -7,6 +7,6 @@ pub struct ModulesPluginGroup;
 impl PluginGroup for ModulesPluginGroup {
     fn build(self) -> PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
-            .add(AutoEatPlugin)
+            .add(auto_eat::AutoEatPlugin)
     }
 }
