@@ -10,6 +10,7 @@ parking_lot = { version = "0.12.3", features = ["deadlock_detection"] }
 tokio = {version = "*", features = ["full"]}
 ratatui = "0.29.0"
 once_cell = "1.21.3"
+bounded-counter = "0.1.3"
 
 [profile.dev]
 opt-level = 1

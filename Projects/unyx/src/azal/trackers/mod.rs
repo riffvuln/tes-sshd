@@ -2,7 +2,7 @@ use azalea::app::{PluginGroup, PluginGroupBuilder};
 
 pub mod game_tick;
 
-pub TrackersGroup;
+pub struct TrackersGroup;
 
 impl PluginGroup for TrackersGroup {
     fn build(self) -> PluginGroupBuilder {
