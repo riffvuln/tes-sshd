@@ -4,8 +4,6 @@ use tokio::process::Command;
 use clap::Parser;
 use url::Url;
 use std::time::Duration;
-use tokio::sync::Semaphore;
-use std::sync::Arc;
 
 /// Extract URLs from search results
 #[derive(Parser, Debug)]
@@ -77,123 +75,51 @@ fn extract_urls(lynx_output: &str) -> Result<Vec<SearchResult>, Box<dyn Error>> 
     Ok(results)
 }
 
-async fn search_page(query: &str, page: u32, timeout_secs: u64) -> Option<Vec<String>> {
-    let search_url = format!("https://www.google.com/search?q={}&start={}", urlencoding::encode(query), page * 10);
-    
-    let output = match tokio::time::timeout(
-        Duration::from_secs(timeout_secs),
-        Command::new("lynx")
-            .arg("-listonly")
-            .arg("-dump")
-            .arg(&search_url)
-            .output()
-    ).await {
-        Ok(result) => match result {
-            Ok(output) => output,
-            Err(_) => return None,
-        },
-        Err(_) => return None, // Timeout occurred
-    };
-
-    if !output.status.success() {
-        return None;
-    }
-
-    let lynx_output = match String::from_utf8(output.stdout) {
-        Ok(text) => text,
-        Err(_) => return None,
-    };
-    
-    let results = match extract_urls(&lynx_output) {
-        Ok(results) => results,
-        Err(_) => return None,
-    };
-    
-    // If no results are found, return None to indicate end of pages
-    if results.is_empty() {
-        return None;
-    }
-    
-    // Collect non-Google URLs
-    let mut page_urls = Vec::new();
-    for result in results {
-        if !result.url.contains("google.com") {
-            page_urls.push(result.url);
-        }
-    }
-    
-    // If no valid URLs found, consider it as an empty page
-    if page_urls.is_empty() {
-        return None;
-    }
-    
-    Some(page_urls)
-}
-
 async fn search_until_end_page(query: &str, timeout_secs: u64) -> Result<Vec<String>, Box<dyn Error>> {
-    let semaphore = Arc::new(Semaphore::new(20)); // Limit to 20 concurrent tasks
+    let mut page: u32 = 0; // Starting from page 0
     let mut urls: Vec<String> = Vec::new();
-    let mut page = 0;
-    let mut tasks = Vec::new();
-
-    // Start initial batch of tasks
     loop {
-        let permit = semaphore.clone().acquire_owned().await?;
-        let query_clone = query.to_string();
+        let search_url = format!("https://www.google.com/search?q={}&start={}", urlencoding::encode(query), page * 10);
         
-        let task = tokio::spawn(async move {
-            let result = search_page(&query_clone, page, timeout_secs).await;
-            (page, result, permit) // Return page number with result
-        });
+        let output = tokio::time::timeout(
+            Duration::from_secs(timeout_secs),
+            Command::new("lynx")
+                .arg("-listonly")
+                .arg("-dump")
+                .arg(&search_url)
+                .output()
+        ).await??;
+
+        if !output.status.success() {
+            return Err(format!("Error running lynx: {}", String::from_utf8_lossy(&output.stderr)).into());
+        }
+
+        let lynx_output = String::from_utf8(output.stdout)?;
+        let results = extract_urls(&lynx_output)?;
         
-        tasks.push(task);
-        page += 1;
-        
-        // If we've spawned 20 initial tasks, break to start processing results
-        if page >= 20 {
+        // If no results are found, break the loop and return collected URLs
+        if results.is_empty() {
             break;
         }
-    }
-    
-    // Process results
-    let mut found_last_page = false;
-    let mut max_page_processed = 0;
-    
-    while let Some(task) = tasks.pop() {
-        let (page_num, result, _permit) = task.await?; // permit is dropped here, freeing a slot
         
-        max_page_processed = max_page_processed.max(page_num);
-        
-        match result {
-            Some(page_urls) => {
-                urls.extend(page_urls);
-                
-                // If we haven't found the last page yet, keep creating new tasks
-                if !found_last_page {
-                    let permit = semaphore.clone().acquire_owned().await?;
-                    let query_clone = query.to_string();
-                    
-                    let new_page = page;
-                    page += 1;
-                    
-                    let task = tokio::spawn(async move {
-                        let result = search_page(&query_clone, new_page, timeout_secs).await;
-                        (new_page, result, permit)
-                    });
-                    
-                    tasks.push(task);
-                }
-            },
-            None => {
-                found_last_page = true;
+        // Add non-Google URLs to the collection
+        let mut found_new = false;
+        for result in results {
+            if result.url.contains("google.com") {
+                continue; // Skip Google URLs
             }
+            
+            urls.push(result.url);
+            found_new = true;
         }
         
-        if found_last_page && tasks.is_empty() {
+        // Break if no new non-Google URLs were found
+        if !found_new {
             break;
         }
+
+        page += 1;
     }
-    
     Ok(urls)
 }
 
@@ -204,14 +130,27 @@ async fn main() -> Result<(), Box<dyn Error>> {
     
     check_lynx_installed().await?;
     
-    // Search with concurrent tasks
+    // let lynx_output = fetch_google_search_results(&search_query, args.timeout).await?;
+    // let results = extract_urls(&lynx_output)?;
+    
+    // if results.is_empty() {
+    //     println!("No results found.");
+    //     return Ok(());
+    // }
+    
+    // // Print only the URLs, one per line - clean output format
+    // for result in results {
+    //     println!("{}", result.url);
+    // }
+    
+    // Search until the end page
     let urls = search_until_end_page(&search_query, args.timeout).await?;
     if urls.is_empty() {
         println!("No results found.");
         return Ok(());
     }
-    
-    // Print the URLs
+    // Print only the URLs, one per line - clean output format
+    let mut counter = 0;
     for (indx, url) in urls.iter().enumerate() {
         println!("{}: {}", indx + 1, url);
     }
