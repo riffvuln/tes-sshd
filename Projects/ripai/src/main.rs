@@ -87,7 +87,8 @@ async fn search_until_end_page(query: &str, timeout_secs: u64, tor_proxy: bool) 
             println!("Using Tor proxy");
             output = tokio::time::timeout(
                 Duration::from_secs(timeout_secs),
-                Command::new("proxychains /bin/lynx")
+                Command::new("proxychains")
+                    .arg("lynx")
                     .arg(useragent)
                     .arg("-listonly")
                     .arg("-dump")
