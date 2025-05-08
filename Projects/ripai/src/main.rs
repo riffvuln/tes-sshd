@@ -158,7 +158,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // }
     
     // Search until the end page
-    let urls = search_until_end_page(&search_query, args.timeout, true).await?;
+    let urls = search_until_end_page(&search_query, args.timeout, false).await?;
     if urls.is_empty() {
         println!("No results found.");
         return Ok(());
