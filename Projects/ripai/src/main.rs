@@ -75,7 +75,7 @@ fn extract_urls(lynx_output: &str) -> Result<Vec<SearchResult>, Box<dyn Error>> 
     Ok(results)
 }
 
-async fn search_until_end_page(query: &str, timeout_secs: u64) -> Result<String, Box<dyn Error>> {
+async fn search_until_end_page(query: &str, timeout_secs: u64) -> Result<Vec<String>, Box<dyn Error>> {
     let mut page: u32 = 1; // if that possible for google search make overflow u32??
     let urls: Vec<String> = Vec::new();
     loop {
@@ -95,12 +95,17 @@ async fn search_until_end_page(query: &str, timeout_secs: u64) -> Result<String,
         }
 
         let lynx_output = String::from_utf8(output.stdout)?;
-        if lynx_output.contains("No results found") {
-            break;
-        }
+        let results = extract_urls(&lynx_output)?;
+        for result in results {
+            if result.url.contains("google.com") {
+                continue; // Skip Google URLs
+            }
+            urls.push(result.url);
+        };
 
         page += 1;
     }
+    Ok(urls)
 }
 
 #[tokio::main]
