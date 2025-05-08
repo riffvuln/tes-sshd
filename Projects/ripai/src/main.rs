@@ -1,7 +1,6 @@
 use std::error::Error;
 use regex::Regex;
 use tokio::process::Command;
-use futures::future::try_join_all;
 use clap::Parser;
 use url::Url;
 use std::time::Duration;
@@ -124,31 +123,37 @@ async fn fetch_page_title(url: &str, timeout: Duration) -> Result<Option<String>
 }
 
 async fn process_search_results(results: &[SearchResult], timeout: Duration, limit: usize) -> Vec<SearchResult> {
-    let mut enhanced_results = Vec::new();
     let mut futures = Vec::new();
     
     // Only process up to the limit
     for result in results.iter().take(limit) {
         let url = result.url.clone();
+        let title_clone = result.title.clone();
+        
         futures.push(async move {
+            // Return a Result<SearchResult, Box<dyn Error>> instead of SearchResult directly
             let title = match fetch_page_title(&url, timeout).await {
                 Ok(Some(title)) => Some(title),
-                _ => result.title.clone(), // Fall back to the original title if any
+                _ => title_clone, // Fall back to the original title if any
             };
             
-            SearchResult {
+            Ok::<_, Box<dyn Error>>(SearchResult {
                 url,
                 title,
-            }
+            })
         });
     }
     
-    // Run futures in parallel
-    if let Ok(results) = try_join_all(futures).await {
-        enhanced_results = results;
+    // Use join_all instead of try_join_all since we're now handling errors inside each future
+    match futures::future::join_all(futures).await.into_iter().collect::<Vec<_>>() {
+        results_vec if !results_vec.is_empty() => {
+            // Filter out any errors and keep successful results
+            results_vec.into_iter()
+                .filter_map(|res| res.ok())
+                .collect()
+        },
+        _ => Vec::new(),
     }
-    
-    enhanced_results
 }
 
 #[tokio::main]
