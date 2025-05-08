@@ -75,9 +75,6 @@ fn extract_urls(lynx_output: &str) -> Result<Vec<SearchResult>, Box<dyn Error>> 
     Ok(results)
 }
 
-// We've removed the fetch_page_title and process_search_results functions 
-// since we're focusing only on extracting URLs without titles
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
