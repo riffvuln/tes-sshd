@@ -150,8 +150,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
     // Print only the URLs, one per line - clean output format
-    for url in urls {
-        println!("{}", url);
+    let mut counter = 0;
+    for (indx, url) in urls.iter().enumerate() {
+        println!("{}: {}", indx + 1, url);
     }
     Ok(())
 }
