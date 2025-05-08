@@ -75,6 +75,26 @@ fn extract_urls(lynx_output: &str) -> Result<Vec<SearchResult>, Box<dyn Error>> 
     Ok(results)
 }
 
+async fn search_until_end_page(query: &str, timeout_secs: u64) -> Result<String, Box<dyn Error>> {
+    let mut page: u32 = 1; // if that possible for google search make overflow u32??
+    
+
+    let search_url = format!("https://www.google.com/search?q={}", urlencoding::encode(query));
+    
+    let output = tokio::time::timeout(
+        Duration::from_secs(timeout_secs),
+        Command::new("lynx")
+            .arg("-listonly")
+            .arg("-dump")
+            .arg(&search_url)
+            .output()
+    ).await??;
+
+    if !output.status.success() {
+        return Err(format!("Error running lynx: {}", String::from_utf8_lossy(&output.stderr)).into());
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
