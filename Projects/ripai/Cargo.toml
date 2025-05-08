@@ -11,4 +11,5 @@ urlencoding = "2.1.3"
 futures = "*"
 url = "*"
 clap = { version = "*", features = ["derive"] }
+rand_agents = "1.0.0"
 
