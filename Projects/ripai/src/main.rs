@@ -77,7 +77,7 @@ fn extract_urls(lynx_output: &str) -> Result<Vec<SearchResult>, Box<dyn Error>> 
 
 async fn search_until_end_page(query: &str, timeout_secs: u64) -> Result<Vec<String>, Box<dyn Error>> {
     let mut page: u32 = 1; // if that possible for google search make overflow u32??
-    let urls: Vec<String> = Vec::new();
+    let mut urls: Vec<String> = Vec::new();
     loop {
         let search_url = format!("https://www.google.com/search?q={}&start={}", urlencoding::encode(query), page * 10);
         
