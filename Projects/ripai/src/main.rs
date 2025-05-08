@@ -52,26 +52,19 @@ async fn fetch_google_search_results(query: &str, timeout_secs: u64) -> Result<S
 }
 
 fn extract_urls(lynx_output: &str) -> Result<Vec<SearchResult>, Box<dyn Error>> {
-    // More robust regex that handles different Google URL formats
-    let re = Regex::new(r"(?:\d+\.\s+)?(https://www\.google\.com/url\?(?:[^&]*&)*q=([^&]+)(?:&[^&]*)*)")?;
+    let re = Regex::new(r"(?:\d+\.\s+)?https://www\.google\.com/url\?(?:[^&]*&)*q=([^&]+)")?;
     let mut results = Vec::new();
 
     for line in lynx_output.lines() {
         if let Some(captures) = re.captures(line) {
-            if let Some(url_match) = captures.get(2) {
-                // URL decode the extracted URL
+            if let Some(url_match) = captures.get(1) {
                 let decoded_url = urlencoding::decode(url_match.as_str())?;
-                
-                // Extract title if available (usually after the URL in lynx output)
-                let title = line.split(" - ").nth(1).map(String::from);
                 
                 // Validate the URL
                 if let Ok(parsed_url) = Url::parse(&decoded_url) {
-                    // Only include http/https URLs
                     if parsed_url.scheme() == "http" || parsed_url.scheme() == "https" {
                         results.push(SearchResult {
                             url: decoded_url.into_owned(),
-                            title,
                         });
                     }
                 }
