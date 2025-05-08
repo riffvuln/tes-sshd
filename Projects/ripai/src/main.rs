@@ -28,7 +28,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     
     // Parse the HTML document
     let dom = parse_document(RcDom::default(), Default::default())
-        .from_utf8().read_from(&body.as_bytes()[..]).unwrap();
+        .one(body.as_bytes()).unwrap();
     
     // Extract all links in lynx format
     println!("\nReferences\n");
