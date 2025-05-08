@@ -9,6 +9,6 @@ reqwest = { version = "*", features = ["json"] }
 tokio = { version = "*", features = ["full"] }
 urlencoding = "2.1.3"
 futures = "*"
-url = "2.3"
-clap = { version = "4.0", features = ["derive"] }
+url = "*"
+clap = { version = "*", features = ["derive"] }
 
