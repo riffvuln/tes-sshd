@@ -81,7 +81,7 @@ async fn search_until_end_page(query: &str, timeout_secs: u64) -> Result<Vec<Str
     loop {
         let search_url = format!("https://www.google.com/search?q={}&qo={}&start={}", urlencoding::encode(query), urlencoding::encode(query), page * 10);
         let useragent = format!(r#"-useragent="{} Lynx""#, rand_agents::user_agent());
-        println!(r#"useragent: {}"#, useragent);
+        // println!(r#"useragent: {}"#, useragent);
         let output = tokio::time::timeout(
             Duration::from_secs(timeout_secs),
             Command::new("lynx")
