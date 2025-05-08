@@ -83,7 +83,7 @@ async fn search_until_end_page(query: &str, timeout_secs: u64, tor_proxy: bool) 
         let useragent = format!(r#"-useragent="{}""#, rand_agents::user_agent());
         // println!(r#"useragent: {}"#, useragent);
         let mut output;
-        if proxy {
+        if tor_proxy {
             output = tokio::time::timeout(
                 Duration::from_secs(timeout_secs),
                 Command::new("proxychains lynx")
