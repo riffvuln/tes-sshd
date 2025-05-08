@@ -76,79 +76,50 @@ fn extract_urls(lynx_output: &str) -> Result<Vec<SearchResult>, Box<dyn Error>> 
 }
 
 async fn search_until_end_page(query: &str, timeout_secs: u64) -> Result<Vec<String>, Box<dyn Error>> {
+    let mut page: u32 = 0; // Starting from page 0
     let mut urls: Vec<String> = Vec::new();
-    let mut handles = Vec::new();
-    
-    // Launch 20 green threads (Tokio tasks) for concurrent searching
-    for page in 0..20 {
-        let query = query.to_string();
-        let handle = tokio::spawn(async move {
-            let search_url = format!("https://www.google.com/search?q={}&start={}", 
-                urlencoding::encode(&query), page * 10);
-            
-            let output = match tokio::time::timeout(
-                Duration::from_secs(timeout_secs),
-                Command::new("lynx")
-                    .arg("-listonly")
-                    .arg("-dump")
-                    .arg(&search_url)
-                    .output()
-            ).await {
-                Ok(result) => match result {
-                    Ok(output) => output,
-                    Err(e) => return Err(format!("Command error: {}", e))
-                },
-                Err(_) => return Err("Timeout occurred".to_string())
-            };
-
-            if !output.status.success() {
-                return Err(format!("Error running lynx: {}", String::from_utf8_lossy(&output.stderr)));
-            }
-
-            let lynx_output = match String::from_utf8(output.stdout) {
-                Ok(s) => s,
-                Err(e) => return Err(format!("UTF-8 conversion error: {}", e))
-            };
-            
-            let results = match extract_urls(&lynx_output) {
-                Ok(res) => res,
-                Err(e) => return Err(format!("URL extraction error: {}", e))
-            };
-            
-            // If no results are found, return None to signal end of results
-            if results.is_empty() {
-                return Ok(None);
-            }
-            
-            // Filter out Google URLs
-            let page_urls: Vec<String> = results.into_iter()
-                .filter(|result| !result.url.contains("google.com"))
-                .map(|result| result.url)
-                .collect();
-            
-            // If we found no valid URLs on this page, consider it the end of results
-            if page_urls.is_empty() {
-                return Ok(None);
-            }
-            
-            Ok(Some(page_urls))
-        });
+    loop {
+        let search_url = format!("https://www.google.com/search?q={}&start={}", urlencoding::encode(query), page * 10);
         
-        handles.push(handle);
-    }
+        let output = tokio::time::timeout(
+            Duration::from_secs(timeout_secs),
+            Command::new("lynx")
+                .arg("-listonly")
+                .arg("-dump")
+                .arg(&search_url)
+                .output()
+        ).await??;
 
-    // Process results from all tasks
-    for handle in handles {
-        match handle.await {
-            Ok(result) => match result {
-                Ok(Some(page_urls)) => urls.extend(page_urls),
-                Ok(None) => {}, // End of results for this page
-                Err(e) => eprintln!("Error in search task: {}", e),
-            },
-            Err(e) => eprintln!("Task join error: {}", e),
+        if !output.status.success() {
+            return Err(format!("Error running lynx: {}", String::from_utf8_lossy(&output.stderr)).into());
         }
-    }
 
+        let lynx_output = String::from_utf8(output.stdout)?;
+        let results = extract_urls(&lynx_output)?;
+        
+        // If no results are found, break the loop and return collected URLs
+        if results.is_empty() {
+            break;
+        }
+        
+        // Add non-Google URLs to the collection
+        let mut found_new = false;
+        for result in results {
+            if result.url.contains("google.com") {
+                continue; // Skip Google URLs
+            }
+            
+            urls.push(result.url);
+            found_new = true;
+        }
+        
+        // Break if no new non-Google URLs were found
+        if !found_new {
+            break;
+        }
+
+        page += 1;
+    }
     Ok(urls)
 }
 
