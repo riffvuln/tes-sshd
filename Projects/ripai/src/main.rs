@@ -1,5 +1,5 @@
 use reqwest;
-use regex::Regex;
+use scraper::{Html, Selector};
 use std::error::Error;
 
 #[tokio::main]
@@ -14,17 +14,27 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let response = client.get(url).send().await?;
     let body = response.text().await?;
 
-    println!("Response Body: {}", body);
-
-    // Create regex to extract URLs similar to the grep pattern
-    let re = Regex::new(r"https://www\.google\.com/url\?q=([^&]+)")?;
-
-    // Extract and process all matches
-    for cap in re.captures_iter(&body) {
-        if let Some(url_match) = cap.get(1) {
-            // URL decode the extracted URL
-            let decoded_url = urlencoding::decode(url_match.as_str())?;
-            println!("{}", decoded_url);
+    // Parse HTML
+    let document = Html::parse_document(&body);
+    let link_selector = Selector::parse("a[href]").unwrap();
+    
+    // Extract and print all links in a format similar to lynx -listonly -dump
+    println!("References\n");
+    
+    let mut counter = 1;
+    for link in document.select(&link_selector) {
+        if let Some(href) = link.value().attr("href") {
+            // Only include full URLs (skip javascript:void etc.)
+            if href.starts_with("http") || href.starts_with("/") {
+                let full_url = if href.starts_with("/") {
+                    format!("https://www.google.com{}", href)
+                } else {
+                    href.to_string()
+                };
+                
+                println!("  {}. {}", counter, full_url);
+                counter += 1;
+            }
         }
     }
 
