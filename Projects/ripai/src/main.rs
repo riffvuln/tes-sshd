@@ -33,11 +33,8 @@ async fn check_lynx_installed() -> Result<(), Box<dyn Error>> {
 }
 
 async fn fetch_google_search_results(query: &str, timeout_secs: u64) -> Result<String, Box<dyn Error>> {
-    // Properly encode the query for URL
-    let encoded_query = urlencoding::encode(query);
-    let search_url = format!("https://www.google.com/search?q={}", encoded_query);
+    let search_url = format!("https://www.google.com/search?q={}", urlencoding::encode(query));
     
-    // Use a timeout for the command
     let output = tokio::time::timeout(
         Duration::from_secs(timeout_secs),
         Command::new("lynx")
@@ -48,8 +45,7 @@ async fn fetch_google_search_results(query: &str, timeout_secs: u64) -> Result<S
     ).await??;
 
     if !output.status.success() {
-        let error_msg = String::from_utf8_lossy(&output.stderr);
-        return Err(format!("Error running lynx: {}", error_msg).into());
+        return Err(format!("Error running lynx: {}", String::from_utf8_lossy(&output.stderr)).into());
     }
 
     Ok(String::from_utf8(output.stdout)?)
