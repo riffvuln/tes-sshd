@@ -1,38 +1,39 @@
+use reqwest;
+use scraper::{Html, Selector};
 use std::error::Error;
-use std::process::Command;
-use regex::Regex;
 
-fn main() -> Result<(), Box<dyn Error>> {
-    // Check if lynx is installed
-    if let Err(_) = Command::new("lynx").arg("--version").output() {
-        eprintln!("Error: lynx is not installed or not in PATH");
-        eprintln!("Please install lynx with your package manager (e.g., apt install lynx)");
-        std::process::exit(1);
-    }
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    // Set up a user agent to avoid being blocked
+    let client = reqwest::Client::builder()
+        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+        .build()?;
 
-    // Use lynx to get the links from Google search
-    let output = Command::new("lynx")
-        .arg("-listonly")
-        .arg("-dump")
-        .arg("https://www.google.com/search?q=Rust&oq=Rust")
-        .output()?;
+    // Fetch the Google search page
+    let url = "https://www.google.com/search?q=Rust&oq=Rust";
+    let response = client.get(url).send().await?;
+    let body = response.text().await?;
 
-    if !output.status.success() {
-        eprintln!("Error running lynx: {}", String::from_utf8_lossy(&output.stderr));
-        std::process::exit(1);
-    }
-
-    let lynx_output = String::from_utf8(output.stdout)?;
+    // Parse HTML
+    let document = Html::parse_document(&body);
+    let link_selector = Selector::parse("a[href]").unwrap();
     
-    // Use regex to extract URLs from Google redirects
-    let re = Regex::new(r"https://www\.google\.com/url\?q=([^&]+)")?;
-
-    for line in lynx_output.lines() {
-        if let Some(captures) = re.captures(line) {
-            if let Some(url_match) = captures.get(1) {
-                // URL decode the extracted URL
-                let decoded_url = urlencoding::decode(url_match.as_str())?;
-                println!("{}", decoded_url);
+    // Extract and print all links in a format similar to lynx -listonly -dump
+    println!("References\n");
+    
+    let mut counter = 1;
+    for link in document.select(&link_selector) {
+        if let Some(href) = link.value().attr("href") {
+            // Only include full URLs (skip javascript:void etc.)
+            if href.starts_with("http") || href.starts_with("/") {
+                let full_url = if href.starts_with("/") {
+                    format!("https://www.google.com{}", href)
+                } else {
+                    href.to_string()
+                };
+                
+                println!("  {}. {}", counter, full_url);
+                counter += 1;
             }
         }
     }
