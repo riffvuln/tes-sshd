@@ -14,6 +14,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let response = client.get(url).send().await?;
     let body = response.text().await?;
 
+    println!("Response Body: {}", body);
+
     // Create regex to extract URLs similar to the grep pattern
     let re = Regex::new(r"https://www\.google\.com/url\?q=([^&]+)")?;
 
