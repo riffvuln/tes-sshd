@@ -17,6 +17,12 @@ setup_workdir() {
   source ~/.bashrc
 }
 
+setup_tor_proxychains() {
+  apt install proxychains tor
+  service tor start
+}
+
 setup_workdir
 install_rust
 install_mojo
+setup_tor_proxychains
