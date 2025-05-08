@@ -79,7 +79,7 @@ async fn search_until_end_page(query: &str, timeout_secs: u64) -> Result<Vec<Str
     let mut page: u32 = 0; // Starting from page 0
     let mut urls: Vec<String> = Vec::new();
     loop {
-        let search_url = format!("https://www.google.com/search?q={}&start={}", urlencoding::encode(query), page * 10);
+        let search_url = format!("https://www.google.com/search?q={}&qo={}&start={}", urlencoding::encode(query), urlencoding::encode(query), page * 10);
         
         let output = tokio::time::timeout(
             Duration::from_secs(timeout_secs),
