@@ -5,20 +5,16 @@ use clap::Parser;
 use url::Url;
 use std::time::Duration;
 
-/// A simple tool to search the web and extract URLs
+/// Extract URLs from search results
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
 struct Args {
     /// Search query
     #[clap(required = true)]
     query: Vec<String>,
-
-    /// Number of results to fetch
-    #[clap(short, long, default_value = "100")]
-    limit: usize,
-
-    /// Timeout in seconds for network operations
-    #[clap(short, long, default_value = "30")]
+    
+    /// Timeout in seconds
+    #[clap(short, long, default_value = "10")]
     timeout: u64,
 }
 
