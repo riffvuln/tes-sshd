@@ -21,12 +21,10 @@ struct Args {
 #[derive(Debug)]
 struct SearchResult {
     url: String,
-    title: Option<String>,
 }
 
 async fn check_lynx_installed() -> Result<(), Box<dyn Error>> {
-    let result = Command::new("lynx").arg("--version").output().await;
-    if result.is_err() {
+    if Command::new("lynx").arg("--version").output().await.is_err() {
         eprintln!("Error: lynx is not installed or not in PATH");
         eprintln!("Please install lynx with your package manager (e.g., apt install lynx)");
         return Err("lynx command not found".into());
