@@ -14,7 +14,7 @@ struct Args {
     query: Vec<String>,
 
     /// Number of results to fetch
-    #[clap(short, long, default_value = "10")]
+    #[clap(short, long, default_value = "100")]
     limit: usize,
 
     /// Timeout in seconds for network operations
