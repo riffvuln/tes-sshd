@@ -75,69 +75,8 @@ fn extract_urls(lynx_output: &str) -> Result<Vec<SearchResult>, Box<dyn Error>> 
     Ok(results)
 }
 
-async fn fetch_page_title(url: &str, timeout: Duration) -> Result<Option<String>, Box<dyn Error>> {
-    // Create a client with timeout
-    let client = reqwest::Client::builder()
-        .timeout(timeout)
-        .build()?;
-    
-    // Fetch just the headers to be efficient
-    let response = client.get(url)
-        .header("User-Agent", "Mozilla/5.0 (compatible; RipAI/1.0)")
-        .send()
-        .await?;
-    
-    if !response.status().is_success() {
-        return Ok(None);
-    }
-    
-    // Get the full page content
-    let text = response.text().await?;
-    
-    // Extract title using regex (simple approach)
-    let title_re = Regex::new(r"<title[^>]*>([^<]+)</title>")?;
-    if let Some(captures) = title_re.captures(&text) {
-        if let Some(title) = captures.get(1) {
-            return Ok(Some(title.as_str().trim().to_string()));
-        }
-    }
-    
-    Ok(None)
-}
-
-async fn process_search_results(results: &[SearchResult], timeout: Duration, limit: usize) -> Vec<SearchResult> {
-    let mut futures = Vec::new();
-    
-    // Only process up to the limit
-    for result in results.iter().take(limit) {
-        let url = result.url.clone();
-        let title_clone = result.title.clone();
-        
-        futures.push(async move {
-            // Return a Result<SearchResult, Box<dyn Error>> instead of SearchResult directly
-            let title = match fetch_page_title(&url, timeout).await {
-                Ok(Some(title)) => Some(title),
-                _ => title_clone, // Fall back to the original title if any
-            };
-            
-            Ok::<_, Box<dyn Error>>(SearchResult {
-                url,
-                title,
-            })
-        });
-    }
-    
-    // Use join_all instead of try_join_all since we're now handling errors inside each future
-    match futures::future::join_all(futures).await.into_iter().collect::<Vec<_>>() {
-        results_vec if !results_vec.is_empty() => {
-            // Filter out any errors and keep successful results
-            results_vec.into_iter()
-                .filter_map(|res| res.ok())
-                .collect()
-        },
-        _ => Vec::new(),
-    }
-}
+// We've removed the fetch_page_title and process_search_results functions 
+// since we're focusing only on extracting URLs without titles
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
