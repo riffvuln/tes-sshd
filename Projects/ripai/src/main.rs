@@ -115,18 +115,28 @@ async fn main() -> Result<(), Box<dyn Error>> {
     
     check_lynx_installed().await?;
     
-    let lynx_output = fetch_google_search_results(&search_query, args.timeout).await?;
-    let results = extract_urls(&lynx_output)?;
+    // let lynx_output = fetch_google_search_results(&search_query, args.timeout).await?;
+    // let results = extract_urls(&lynx_output)?;
     
-    if results.is_empty() {
+    // if results.is_empty() {
+    //     println!("No results found.");
+    //     return Ok(());
+    // }
+    
+    // // Print only the URLs, one per line - clean output format
+    // for result in results {
+    //     println!("{}", result.url);
+    // }
+    
+    // Search until the end page
+    let urls = search_until_end_page(&search_query, args.timeout).await?;
+    if urls.is_empty() {
         println!("No results found.");
         return Ok(());
     }
-    
     // Print only the URLs, one per line - clean output format
-    for result in results {
-        println!("{}", result.url);
+    for url in urls {
+        println!("{}", url);
     }
-    
     Ok(())
 }
