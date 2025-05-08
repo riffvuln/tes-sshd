@@ -80,40 +80,22 @@ fn extract_urls(lynx_output: &str) -> Result<Vec<SearchResult>, Box<dyn Error>> 
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    // Parse command line arguments
     let args = Args::parse();
-    
-    // Combine the query terms
     let search_query = args.query.join(" ");
-    let timeout_duration = Duration::from_secs(args.timeout);
     
-    // Check if lynx is installed
     check_lynx_installed().await?;
     
-    // Fetch search results
-    println!("Searching for: {}", search_query);
     let lynx_output = fetch_google_search_results(&search_query, args.timeout).await?;
-    let search_results = extract_urls(&lynx_output)?;
+    let results = extract_urls(&lynx_output)?;
     
-    if search_results.is_empty() {
-        println!("No results found for query: {}", search_query);
+    if results.is_empty() {
+        println!("No results found.");
         return Ok(());
     }
     
-    // Process the search results to get better titles
-    println!("Found {} results, fetching details for top {}...", search_results.len(), args.limit);
-    let enhanced_results = process_search_results(&search_results, timeout_duration, args.limit).await;
-    
-    // Display results
-    println!("\nSearch Results for '{}':", search_query);
-    println!("==========================================");
-    
-    for (idx, result) in enhanced_results.iter().enumerate() {
-        println!("{}. {}", idx + 1, result.url);
-        if let Some(title) = &result.title {
-            println!("   Title: {}", title);
-        }
-        println!();
+    // Print only the URLs, one per line - clean output format
+    for result in results {
+        println!("{}", result.url);
     }
     
     Ok(())
