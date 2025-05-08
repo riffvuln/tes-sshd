@@ -86,7 +86,7 @@ async fn search_until_end_page(query: &str, timeout_secs: u64) -> Result<Vec<Str
             Command::new("lynx")
                 .arg("-listonly")
                 .arg("-dump")
-                .arg("-useragent={}")
+                .arg(&useragent)
                 .arg(&search_url)
                 .output()
         ).await??;
