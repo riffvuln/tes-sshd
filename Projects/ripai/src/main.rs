@@ -79,7 +79,7 @@ async fn search_until_end_page(query: &str, timeout_secs: u64) -> Result<Vec<Str
     let mut page: u32 = 0; // Starting from page 0
     let mut urls: Vec<String> = Vec::new();
     loop {
-        let search_url = format!("https://www.google.com/search?q={}&qo={}&start={}&sca_esv=177fae3e0b1a050b&sxsrf=AHTn8zqf1Qh7D2ZiPCkkjHp9FdIYt-a5jA:1746710502105&source=hp&ei=5q8caKeTBL2OosUP1LqxiQQ&iflsig=ACkRmUkAAAAAaBy99hyZozaxNnRezaxaxfufl2rsMuTE&ved=0ahUKEwinnoHY-5ONAxU9h6gCHVRdLEEQ4dUDCBY&uact=5&oq=cvzdash&gs_lp=Egdnd3Mtd2l6IgdjdnpkYXNoMgcQIxiwAhgnMgkQABiABBgTGA0yCRAAGIAEGBMYDTIJEAAYgAQYExgNMggQABgTGA0YHjIIEAAYExgNGB4yChAAGBMYCBgNGB4yChAAGBMYCBgNGB4yChAAGBMYCBgNGB4yChAAGBMYCBgNGB5IzgFQAFgAcAB4AJABAJgBWKABWKoBATG4AQPIAQD4AQL4AQGYAgGgAmeYAwCSBwMwLjGgB_8GsgcDMC4xuAdn&sclient=gws-wiz&peek_pws=0", urlencoding::encode(query), urlencoding::encode(query), page * 10);
+        let search_url = format!("https://www.google.com/search?q={}&oq={}&start={}&sca_esv=177fae3e0b1a050b&sxsrf=AHTn8zqf1Qh7D2ZiPCkkjHp9FdIYt-a5jA:1746710502105&source=hp&ei=5q8caKeTBL2OosUP1LqxiQQ&iflsig=ACkRmUkAAAAAaBy99hyZozaxNnRezaxaxfufl2rsMuTE&ved=0ahUKEwinnoHY-5ONAxU9h6gCHVRdLEEQ4dUDCBY&uact=5&gs_lp=Egdnd3Mtd2l6IgdjdnpkYXNoMgcQIxiwAhgnMgkQABiABBgTGA0yCRAAGIAEGBMYDTIJEAAYgAQYExgNMggQABgTGA0YHjIIEAAYExgNGB4yChAAGBMYCBgNGB4yChAAGBMYCBgNGB4yChAAGBMYCBgNGB4yChAAGBMYCBgNGB5IzgFQAFgAcAB4AJABAJgBWKABWKoBATG4AQPIAQD4AQL4AQGYAgGgAmeYAwCSBwMwLjGgB_8GsgcDMC4xuAdn&sclient=gws-wiz&peek_pws=0", urlencoding::encode(query), urlencoding::encode(query), page * 10);
         let useragent = format!(r#"-useragent="{} Lynx""#, rand_agents::user_agent());
         // println!(r#"useragent: {}"#, useragent);
         let output = tokio::time::timeout(
