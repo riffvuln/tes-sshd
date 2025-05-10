@@ -4,3 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+ntex = { version = "2.12.4", features = ["tokio"] }
+thirtyfour = "0.35.0"
+tokio = { version = "1.45.0", features = ["full"] }
