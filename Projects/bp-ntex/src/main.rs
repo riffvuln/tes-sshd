@@ -61,12 +61,16 @@ async fn create_driver() -> Result<WebDriver, WebDriverError> {
     caps.add_arg("--no-sandbox")?;
     caps.add_arg("--disable-dev-shm-usage")?;
     
-    // Set page load timeout and script timeout
-    caps.set_page_load_timeout(Duration::from_secs(30))?;
-    caps.set_script_timeout(Duration::from_secs(30))?;
-    caps.set_implicit_wait_timeout(Duration::from_secs(10))?;
+    // Set timeout preferences via Firefox profile
+    caps.set_preference("browser.pageLoadTimeout", 30000)?;
+    caps.set_preference("dom.max_script_run_time", 30)?;
     
     let driver = WebDriver::new("http://localhost:4444", caps).await?;
+    
+    // Wait operations can be set after driver creation
+    driver.set_implicit_wait_timeout(Duration::from_secs(10)).await?;
+    driver.set_page_load_timeout(Duration::from_secs(30)).await?;
+    driver.set_script_timeout(Duration::from_secs(30)).await?;
     
     // Navigate to a blank page initially
     driver.goto("about:blank").await?;
@@ -195,7 +199,10 @@ async fn process_url_in_tab(driver: WebDriver, url: String, request_id: String) 
     // Handle any errors from the task itself
     match result {
         Ok(inner_result) => inner_result,
-        Err(e) => Err(WebDriverError::SessionNotCreated { message: format!("Task error: {}", e) }),
+        Err(e) => {
+            let error_msg = format!("Task execution error: {}", e);
+            Err(WebDriverError::UnknownError(error_msg))
+        }
     }
 }
 
