@@ -61,16 +61,7 @@ async fn create_driver() -> Result<WebDriver, WebDriverError> {
     caps.add_arg("--no-sandbox")?;
     caps.add_arg("--disable-dev-shm-usage")?;
     
-    // Set timeout preferences via Firefox profile
-    caps.set_preference("browser.pageLoadTimeout", 30000)?;
-    caps.set_preference("dom.max_script_run_time", 30)?;
-    
     let driver = WebDriver::new("http://localhost:4444", caps).await?;
-    
-    // Wait operations can be set after driver creation
-    driver.set_implicit_wait_timeout(Duration::from_secs(10)).await?;
-    driver.set_page_load_timeout(Duration::from_secs(30)).await?;
-    driver.set_script_timeout(Duration::from_secs(30)).await?;
     
     // Navigate to a blank page initially
     driver.goto("about:blank").await?;
@@ -78,11 +69,9 @@ async fn create_driver() -> Result<WebDriver, WebDriverError> {
     Ok(driver)
 }
 
-async fn cleanup_tab(driver: &WebDriver) -> Result<(), WebDriverError> {
+async fn reset_driver(driver: &WebDriver) -> Result<(), WebDriverError> {
     // Clear cookies
-    if let Err(e) = driver.delete_all_cookies().await {
-        println!("Warning: Failed to delete cookies: {}", e);
-    }
+    driver.delete_all_cookies().await?;
     
     // Navigate back to a blank page
     driver.goto("about:blank").await?;
@@ -97,113 +86,35 @@ fn generate_request_id() -> String {
     format!("req-{}", random_num)
 }
 
-// Process a URL in a new tab and return the HTML
-async fn process_url_in_tab(driver: WebDriver, url: String, request_id: String) -> Result<String, WebDriverError> {
-    println!("Processing request {} for URL: {}", request_id, url);
+// Process a URL in a new tab and return the HTML - core functionality
+async fn process_url(driver: WebDriver, url: String, request_id: String) -> Result<String, WebDriverError> {
+    // Create a new tab
+    let tab = driver.new_tab().await?;
+    let tab_id = tab.to_string(); 
+    println!("Created new tab: {}", tab_id);
     
-    let driver_lock = DRIVER_LOCK.clone();
+    // Switch to the new tab
+    driver.switch_to_window(tab.clone()).await?;
     
-    // Create the task that processes the URL
-    let result = task::spawn(async move {
-        // Get exclusive access to the WebDriver
-        let _guard = driver_lock.lock().await;
-        
-        // Safety check if driver is still responsive
-        match driver.title().await {
-            Ok(_) => {}, // Driver is good
-            Err(e) => {
-                println!("Driver became unresponsive before processing request {}: {}", request_id, e);
-                return Err::<String, WebDriverError>(e);
-            }
-        }
-        
-        // Create a new tab with retry mechanism
-        let tab = match driver.new_tab().await {
-            Ok(tab) => tab,
-            Err(e) => {
-                println!("Failed to create new tab for request {}: {}", request_id, e);
-                return Err(e);
-            }
-        };
-        
-        let tab_id = tab.to_string();
-        println!("Created new tab: {}", tab_id);
-        
-        // Switch to the new tab
-        match driver.switch_to_window(tab.clone()).await {
-            Ok(_) => {},
-            Err(e) => {
-                println!("Failed to switch to new tab for request {}: {}", request_id, e);
-                return Err(e);
-            }
-        }
-        
-        // Navigate to the requested URL
-        match driver.goto(&url).await {
-            Ok(_) => {},
-            Err(e) => {
-                println!("Failed to navigate to URL for request {}: {}", request_id, e);
-                
-                // Try to close the tab even if navigation failed
-                let _ = driver.close_window().await;
-                
-                return Err(e);
-            }
-        }
-        
-        // Wait a moment for page to fully load
-        tokio::time::sleep(Duration::from_millis(1500)).await;
-        
-        // Get the page source
-        let html = match driver.source().await {
-            Ok(source) => source,
-            Err(e) => {
-                println!("Failed to get page source for request {}: {}", request_id, e);
-                
-                // Try to close the tab
-                let _ = driver.close_window().await;
-                
-                return Err(e);
-            }
-        };
-        
-        // Clean up - close the tab
-        match driver.close_window().await {
-            Ok(_) => {},
-            Err(e) => {
-                println!("Warning: Failed to close tab for request {}: {}", request_id, e);
-                // Continue anyway, since we have the HTML
-            }
-        }
-        
-        // Try to get available windows
-        let windows = match driver.windows().await {
-            Ok(w) => w,
-            Err(e) => {
-                println!("Warning: Failed to get window handles for request {}: {}", request_id, e);
-                Vec::new()
-            }
-        };
-        
-        // If there are remaining windows, switch to the first one
-        if !windows.is_empty() {
-            if let Err(e) = driver.switch_to_window(windows[0].clone()).await {
-                println!("Warning: Failed to switch to first window for request {}: {}", request_id, e);
-            }
-        }
-        
-        println!("Completed request: {}", request_id);
-        Ok(html)
-    }).await;
+    // Navigate to the requested URL
+    driver.goto(&url).await?;
     
-    // Handle any errors from the task itself
-    match result {
-        Ok(inner_result) => inner_result,
-        Err(e) => {
-            let error_msg = format!("Task execution error: {}", e);
-            Err(WebDriverError::UnknownError(error_msg))
-        }
+    // Wait for page to load
+    tokio::time::sleep(Duration::from_millis(1500)).await;
+    
+    // Get the page source
+    let html = driver.source().await?;
+    
+    // Close the tab
+    driver.close_window().await?;
+    
+    // Find and switch to another window if available
+    let windows = driver.windows().await?;
+    if !windows.is_empty() {
+        driver.switch_to_window(windows[0].clone()).await?;
     }
+    
+    Ok(html)
 }
 
 #[web::post("/bp")]
@@ -213,45 +124,54 @@ async fn bp(req_body: String) -> impl web::Responder {
     // Generate a unique request ID
     let request_id = generate_request_id();
     
-    // Add the request to pending requests
-    PENDING_REQUESTS.write().await.insert(request_id.clone(), true);
-    
     // Get or create the WebDriver instance
     let driver = match get_or_create_driver().await {
         Ok(driver) => driver,
         Err(e) => {
             eprintln!("Error getting WebDriver: {}", e);
-            // Clean up the pending request
-            PENDING_REQUESTS.write().await.remove(&request_id);
             return web::HttpResponse::InternalServerError().body(format!("WebDriver error: {}", e));
         }
     };
     
+    // Add the request to pending requests
+    PENDING_REQUESTS.write().await.insert(request_id.clone(), true);
+    
     // Clone what we need
-    let url = req_body.clone();
+    let driver_clone = driver.clone();
+    let url_clone = req_body.clone();
     let request_id_clone = request_id.clone();
+    let driver_lock = DRIVER_LOCK.clone();
     
-    // Process the URL and get the result
-    let result = process_url_in_tab(driver, url, request_id_clone).await;
+    // Process the request in a separate tokio task
+    let result = task::spawn(async move {
+        // Get an exclusive lock on the WebDriver
+        let _guard = driver_lock.lock().await;
+        
+        match process_url(driver_clone, url_clone, request_id_clone).await {
+            Ok(html) => Ok(html),
+            Err(e) => {
+                eprintln!("Error processing URL: {}", e);
+                Err(e)
+            }
+        }
+    }).await;
     
-    // Mark request as completed
+    // Remove from pending requests
     PENDING_REQUESTS.write().await.remove(&request_id);
     
-    // Check if this was the last request and navigate to default if needed
+    // Check if this was the last request and clean up if needed
     if PENDING_REQUESTS.read().await.is_empty() {
-        if let Ok(driver) = get_or_create_driver().await {
-            // Use the cleanup function to restore the default state
-            let _ = cleanup_tab(&driver).await;
+        match driver.goto("about:blank").await {
+            Ok(_) => {},
+            Err(e) => eprintln!("Error navigating to default page: {}", e)
         }
     }
     
-    // Return appropriate response
+    // Return response based on result
     match result {
-        Ok(html) => web::HttpResponse::Ok().body(html),
-        Err(e) => {
-            eprintln!("Error processing URL: {}", e);
-            web::HttpResponse::InternalServerError().body(format!("Processing error: {}", e))
-        }
+        Ok(Ok(html)) => web::HttpResponse::Ok().body(html),
+        Ok(Err(e)) => web::HttpResponse::InternalServerError().body(format!("Processing error: {}", e)),
+        Err(e) => web::HttpResponse::InternalServerError().body(format!("Task error: {}", e)),
     }
 }
 
