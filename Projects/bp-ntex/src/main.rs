@@ -5,6 +5,10 @@ use thirtyfour::{common::print, prelude::*};
 use std::sync::{Mutex, Arc, Once};
 use lazy_static::lazy_static;
 use std::time::Duration;
+use std::collections::{HashMap, HashSet};
+use tokio::sync::RwLock;
+use tokio::task;
+use rand::Rng;
 
 #[web::get("/")]
 async fn index() -> impl web::Responder {
@@ -15,6 +19,8 @@ async fn index() -> impl web::Responder {
 lazy_static! {
     static ref DRIVER: Arc<Mutex<Option<WebDriver>>> = Arc::new(Mutex::new(None));
     static ref INIT: Once = Once::new();
+    static ref PENDING_REQUESTS: Arc<RwLock<HashMap<String, bool>>> = Arc::new(RwLock::new(HashMap::new()));
+    static ref ACTIVE_TABS: Arc<RwLock<HashSet<String>>> = Arc::new(RwLock::new(HashSet::new()));
 }
 
 async fn get_or_create_driver() -> Result<WebDriver, WebDriverError> {
@@ -70,6 +76,50 @@ async fn reset_driver(driver: &WebDriver) -> Result<(), WebDriverError> {
     Ok(())
 }
 
+// Function to generate a random request ID
+fn generate_request_id() -> String {
+    let mut rng = rand::thread_rng();
+    let random_num: u64 = rng.gen();
+    format!("req-{}", random_num)
+}
+
+// Process a URL in a new tab and return the HTML
+async fn process_url_in_tab(driver: WebDriver, url: String, request_id: String) -> Result<String, WebDriverError> {
+    println!("Processing request {} for URL: {}", request_id, url);
+    
+    // Create a new tab
+    let tab = driver.new_tab().await?;
+    driver.switch_to_window(tab.clone()).await?;
+    
+    // Add this tab to active tabs
+    ACTIVE_TABS.write().await.insert(tab.clone());
+    
+    // Navigate to the requested URL
+    driver.goto(&url).await?;
+    
+    // Wait a moment for page to fully load
+    tokio::time::sleep(Duration::from_millis(500)).await;
+    
+    // Get the page source
+    let html = driver.source().await?;
+    
+    // Clean up - close the tab
+    driver.close().await?;
+    
+    // Remove this tab from active tabs
+    ACTIVE_TABS.write().await.remove(&tab);
+    
+    // Mark request as completed
+    PENDING_REQUESTS.write().await.remove(&request_id);
+    
+    // If no more pending requests, navigate to default page
+    if PENDING_REQUESTS.read().await.is_empty() && ACTIVE_TABS.read().await.is_empty() {
+        driver.goto("about:blank").await?;
+    }
+    
+    Ok(html)
+}
+
 #[web::post("/bp")]
 async fn bp(req_body: String) -> impl web::Responder {
     println!("Request body: {}", req_body);
@@ -83,32 +133,38 @@ async fn bp(req_body: String) -> impl web::Responder {
         }
     };
     
-    // Navigate to the requested URL
-    if let Err(e) = driver.goto(&req_body).await {
-        eprintln!("Error navigating to URL: {}", e);
-        return web::HttpResponse::InternalServerError().body(format!("Navigation error: {}", e));
-    }
+    // Generate a unique request ID
+    let request_id = generate_request_id();
     
-    // Wait a moment for page to fully load
-    std::thread::sleep(Duration::from_millis(500));
+    // Add the request to pending requests
+    PENDING_REQUESTS.write().await.insert(request_id.clone(), true);
     
-    // Get the page source
-    let html = match driver.source().await {
-        Ok(source) => source,
+    // Clone what we need to move into the task
+    let driver_clone = driver.clone();
+    let url = req_body.clone();
+    let request_id_clone = request_id.clone();
+    
+    // Process the URL in a separate tokio task
+    let result = task::spawn(async move {
+        process_url_in_tab(driver_clone, url, request_id_clone).await
+    }).await;
+    
+    // Handle the result
+    match result {
+        Ok(Ok(html)) => web::HttpResponse::Ok().body(html),
+        Ok(Err(e)) => {
+            eprintln!("Error processing URL: {}", e);
+            // Clean up the pending request if there was an error
+            PENDING_REQUESTS.write().await.remove(&request_id);
+            web::HttpResponse::InternalServerError().body(format!("Processing error: {}", e))
+        },
         Err(e) => {
-            eprintln!("Error getting page source: {}", e);
-            return web::HttpResponse::InternalServerError().body(format!("Source error: {}", e));
+            eprintln!("Task join error: {}", e);
+            // Clean up the pending request if there was an error
+            PENDING_REQUESTS.write().await.remove(&request_id);
+            web::HttpResponse::InternalServerError().body(format!("Task error: {}", e))
         }
-    };
-    
-    // Reset the driver for the next request
-    if let Err(e) = reset_driver(&driver).await {
-        eprintln!("Error resetting driver: {}", e);
-        // Continue anyway
     }
-    
-    // Return the HTML response
-    web::HttpResponse::Ok().body(html)
 }
 
 #[ntex::main]
