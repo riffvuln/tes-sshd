@@ -5,7 +5,7 @@ use thirtyfour::{common::print, prelude::*};
 use std::sync::{Mutex, Arc, Once};
 use lazy_static::lazy_static;
 use std::time::Duration;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use tokio::sync::RwLock;
 use tokio::task;
 use rand::Rng;
@@ -15,12 +15,11 @@ async fn index() -> impl web::Responder {
     web::HttpResponse::Ok().body("Nyari apa bg?")
 }
 
-// Global static reference to the WebDriver instance
+// Global static reference to the WebDriver instance and request tracking
 lazy_static! {
     static ref DRIVER: Arc<Mutex<Option<WebDriver>>> = Arc::new(Mutex::new(None));
     static ref INIT: Once = Once::new();
     static ref PENDING_REQUESTS: Arc<RwLock<HashMap<String, bool>>> = Arc::new(RwLock::new(HashMap::new()));
-    static ref ACTIVE_TABS: Arc<RwLock<HashSet<String>>> = Arc::new(RwLock::new(HashSet::new()));
 }
 
 async fn get_or_create_driver() -> Result<WebDriver, WebDriverError> {
@@ -79,7 +78,7 @@ async fn reset_driver(driver: &WebDriver) -> Result<(), WebDriverError> {
 // Function to generate a random request ID
 fn generate_request_id() -> String {
     let mut rng = rand::thread_rng();
-    let random_num: u64 = rng.gen();
+    let random_num: u64 = rng.gen_range(100000..999999);
     format!("req-{}", random_num)
 }
 
@@ -89,10 +88,12 @@ async fn process_url_in_tab(driver: WebDriver, url: String, request_id: String) 
     
     // Create a new tab
     let tab = driver.new_tab().await?;
+    let tab_id = tab.to_string(); // Convert tab handle to string for logging
+    
+    // Switch to the new tab
     driver.switch_to_window(tab.clone()).await?;
     
-    // Add this tab to active tabs
-    ACTIVE_TABS.write().await.insert(tab.clone());
+    println!("Created new tab: {}", tab_id);
     
     // Navigate to the requested URL
     driver.goto(&url).await?;
@@ -104,19 +105,23 @@ async fn process_url_in_tab(driver: WebDriver, url: String, request_id: String) 
     let html = driver.source().await?;
     
     // Clean up - close the tab
-    driver.close().await?;
-    
-    // Remove this tab from active tabs
-    ACTIVE_TABS.write().await.remove(&tab);
+    driver.close_window().await?;
     
     // Mark request as completed
     PENDING_REQUESTS.write().await.remove(&request_id);
     
     // If no more pending requests, navigate to default page
-    if PENDING_REQUESTS.read().await.is_empty() && ACTIVE_TABS.read().await.is_empty() {
-        driver.goto("about:blank").await?;
+    if PENDING_REQUESTS.read().await.is_empty() {
+        // Navigate back to default window if there's one
+        if let Ok(windows) = driver.windows().await {
+            if !windows.is_empty() {
+                driver.switch_to_window(windows[0].clone()).await?;
+                driver.goto("about:blank").await?;
+            }
+        }
     }
     
+    println!("Completed request: {}", request_id);
     Ok(html)
 }
 
