@@ -2,8 +2,6 @@ use core::panic;
 
 use ntex::web;
 use thirtyfour::{common::print, prelude::*};
-use std::sync::{Mutex, Arc, Once};
-use lazy_static::lazy_static;
 use std::time::Duration;
 
 #[web::get("/")]
@@ -11,39 +9,7 @@ async fn index() -> impl web::Responder {
     web::HttpResponse::Ok().body("Nyari apa bg?")
 }
 
-// Global static reference to the WebDriver instance
-lazy_static! {
-    static ref DRIVER: Arc<Mutex<Option<WebDriver>>> = Arc::new(Mutex::new(None));
-    static ref INIT: Once = Once::new();
-}
-
-async fn get_or_create_driver() -> Result<WebDriver, WebDriverError> {
-    let driver_option = DRIVER.lock().unwrap().clone();
-    
-    match driver_option {
-        Some(driver) => {
-            // Driver exists, check if it's still valid
-            match driver.title().await {
-                Ok(_) => Ok(driver), // Driver is responsive
-                Err(_) => {
-                    // Driver is no longer valid, create a new one
-                    println!("Driver is no longer responsive, creating a new one");
-                    let new_driver = create_driver().await?;
-                    *DRIVER.lock().unwrap() = Some(new_driver.clone());
-                    Ok(new_driver)
-                }
-            }
-        },
-        None => {
-            // First time, create the driver
-            println!("Creating driver for the first time");
-            let new_driver = create_driver().await?;
-            *DRIVER.lock().unwrap() = Some(new_driver.clone());
-            Ok(new_driver)
-        }
-    }
-}
-
+/// Creates a new WebDriver instance for a request
 async fn create_driver() -> Result<WebDriver, WebDriverError> {
     let mut caps = DesiredCapabilities::firefox();
     caps.set_headless()?;
@@ -58,16 +24,6 @@ async fn create_driver() -> Result<WebDriver, WebDriverError> {
     driver.goto("about:blank").await?;
     
     Ok(driver)
-}
-
-async fn reset_driver(driver: &WebDriver) -> Result<(), WebDriverError> {
-    // Clear cookies
-    driver.delete_all_cookies().await?;
-    
-    // Navigate back to a blank page
-    driver.goto("about:blank").await?;
-    
-    Ok(())
 }
 
 #[web::post("/bp")]
