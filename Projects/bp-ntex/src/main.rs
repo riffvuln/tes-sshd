@@ -8,6 +8,11 @@ use ntex::web;
 #[ntex::main]
 async fn main() -> std::io::Result<()> {
     println!("Starting WebDriver proxy server on 127.0.0.1:8080");
+
+    std::process::Command::new("geckodriver")
+        .arg("--port=4444")
+        .spawn()
+        .expect("Failed to start geckodriver");
     
     web::HttpServer::new(|| {
         web::App::new()
