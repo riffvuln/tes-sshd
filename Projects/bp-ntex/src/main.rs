@@ -30,11 +30,11 @@ async fn create_driver() -> Result<WebDriver, WebDriverError> {
 async fn bp(req_body: String) -> impl web::Responder {
     println!("Request body: {}", req_body);
     
-    // Get or create the WebDriver instance
-    let driver = match get_or_create_driver().await {
+    // Create a new WebDriver instance for this request
+    let driver = match create_driver().await {
         Ok(driver) => driver,
         Err(e) => {
-            eprintln!("Error getting WebDriver: {}", e);
+            eprintln!("Error creating WebDriver: {}", e);
             return web::HttpResponse::InternalServerError().body(format!("WebDriver error: {}", e));
         }
     };
@@ -42,6 +42,8 @@ async fn bp(req_body: String) -> impl web::Responder {
     // Navigate to the requested URL
     if let Err(e) = driver.goto(&req_body).await {
         eprintln!("Error navigating to URL: {}", e);
+        // Make sure to close the driver to avoid resource leaks
+        let _ = driver.quit().await;
         return web::HttpResponse::InternalServerError().body(format!("Navigation error: {}", e));
     }
     
@@ -53,13 +55,14 @@ async fn bp(req_body: String) -> impl web::Responder {
         Ok(source) => source,
         Err(e) => {
             eprintln!("Error getting page source: {}", e);
+            let _ = driver.quit().await;
             return web::HttpResponse::InternalServerError().body(format!("Source error: {}", e));
         }
     };
     
-    // Reset the driver for the next request
-    if let Err(e) = reset_driver(&driver).await {
-        eprintln!("Error resetting driver: {}", e);
+    // Close the WebDriver session to free resources
+    if let Err(e) = driver.quit().await {
+        eprintln!("Error closing WebDriver: {}", e);
         // Continue anyway
     }
     
