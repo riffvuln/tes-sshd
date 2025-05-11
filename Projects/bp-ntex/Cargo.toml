@@ -8,3 +8,4 @@ lazy_static = "1.4"
 ntex = { version = "2.12.4", features = ["tokio"] }
 thirtyfour = "0.35.0"
 tokio = { version = "1.45.0", features = ["full"] }
+rand = { version = "0.8", features = ["rand_core"] }
