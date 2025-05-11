@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex, Once};
 use std::time::Duration;
+use tokio::sync::Mutex as TokioMutex;
 use lazy_static::lazy_static;
 use thirtyfour::prelude::*;
 use crate::utils::{DEFAULT_PAGE, WEBDRIVER_URL};
@@ -9,6 +10,8 @@ lazy_static! {
     // The WebDriver instance shared across all requests
     pub static ref DRIVER: Arc<Mutex<Option<WebDriver>>> = Arc::new(Mutex::new(None));
     pub static ref INIT: Once = Once::new();
+    // Async mutex for driver creation
+    pub static ref DRIVER_CREATION_LOCK: Arc<TokioMutex<()>> = Arc::new(TokioMutex::new(()));
 }
 
 /// Create a new WebDriver instance with the desired capabilities
