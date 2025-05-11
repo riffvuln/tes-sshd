@@ -124,24 +124,37 @@ pub async fn convert_to_wav(file_path: PathBuf) -> Result<PathBuf> {
     
     let wav_file_path = PathBuf::from(wav_path_str);
     
-    // Use ffmpeg to convert the file (similar to how AudioSegment works in Python)
-    // Note: This assumes ffmpeg is installed on the system
-    let status = Command::new("ffmpeg")
-        .args([
-            "-i", file_path.to_str().unwrap(),
-            "-acodec", "pcm_s16le",
-            "-ar", "44100",
-            wav_file_path.to_str().unwrap()
-        ])
-        .status()
-        .context("Failed to execute ffmpeg")?;
+    // Open the MP3 file for reading
+    let file = File::open(&file_path)
+        .context("Failed to open MP3 file")?;
     
-    if !status.success() {
-        anyhow::bail!("ffmpeg conversion failed");
+    // Decode the MP3
+    let source = rodio::Decoder::new(std::io::BufReader::new(file))
+        .context("Failed to decode MP3 file")?;
+    
+    // Create the output WAV file
+    let wav_file = File::create(&wav_file_path)
+        .context("Failed to create WAV file")?;
+    let mut writer = hound::WavWriter::new(
+        hound::WavSpec {
+            channels: source.channels(),
+            sample_rate: source.sample_rate(),
+            bits_per_sample: 16,
+            sample_format: hound::SampleFormat::Int,
+        },
+        wav_file,
+    ).context("Failed to initialize WAV writer")?;
+    
+    // Convert and write samples
+    for sample in source {
+        writer.write_sample(sample)
+            .context("Failed to write sample to WAV file")?;
     }
     
-    // Remove the original mp3 file
-    fs::remove_file(file_path).context("Failed to remove mp3 file")?;
+    writer.finalize().context("Failed to finalize WAV file")?;
+    
+    // Remove the original MP3 file
+    fs::remove_file(file_path).context("Failed to remove MP3 file")?;
     
     Ok(wav_file_path)
 }
