@@ -7,3 +7,4 @@ edition = "2024"
 reqwest = "*"
 tokio = { version = "*", features = ["full"] }
 thirtyfour = "*"
+rand = "0.8.5"
