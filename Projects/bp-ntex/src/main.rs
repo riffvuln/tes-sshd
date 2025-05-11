@@ -61,10 +61,10 @@ async fn create_driver() -> Result<WebDriver, WebDriverError> {
     caps.add_arg("--no-sandbox")?;
     caps.add_arg("--disable-dev-shm-usage")?;
     
-    // Add connection timeout capabilities
-    caps.add_timeouts("script", 30000)?;
-    caps.add_timeouts("pageLoad", 30000)?;
-    caps.add_timeouts("implicit", 10000)?;
+    // Set page load timeout and script timeout
+    caps.set_page_load_timeout(Duration::from_secs(30))?;
+    caps.set_script_timeout(Duration::from_secs(30))?;
+    caps.set_implicit_wait_timeout(Duration::from_secs(10))?;
     
     let driver = WebDriver::new("http://localhost:4444", caps).await?;
     
@@ -109,7 +109,7 @@ async fn process_url_in_tab(driver: WebDriver, url: String, request_id: String) 
             Ok(_) => {}, // Driver is good
             Err(e) => {
                 println!("Driver became unresponsive before processing request {}: {}", request_id, e);
-                return Err(WebDriverError::CustomError(format!("Driver became unresponsive: {}", e)));
+                return Err::<String, WebDriverError>(e);
             }
         }
         
@@ -195,7 +195,7 @@ async fn process_url_in_tab(driver: WebDriver, url: String, request_id: String) 
     // Handle any errors from the task itself
     match result {
         Ok(inner_result) => inner_result,
-        Err(e) => Err(WebDriverError::CustomError(format!("Task error: {}", e))),
+        Err(e) => Err(WebDriverError::SessionNotCreated { message: format!("Task error: {}", e) }),
     }
 }
 
