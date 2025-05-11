@@ -11,9 +11,10 @@ async fn main() -> std::io::Result<()> {
 
     std::process::Command::new("geckodriver")
         .arg("--port=4444")
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
         .spawn()
         .expect("Failed to start geckodriver");
-    
     web::HttpServer::new(|| {
         web::App::new()
             .service(handlers::index)
