@@ -34,30 +34,49 @@ pub async fn create_driver() -> Result<WebDriver, WebDriverError> {
 
 /// Get the existing WebDriver instance or create a new one
 pub async fn get_or_create_driver() -> Result<WebDriver, WebDriverError> {
-    let driver_option = DRIVER.lock().unwrap().clone();
-    
-    match driver_option {
-        Some(driver) => {
+    // First, check if driver already exists without acquiring the heavy creation lock
+    {
+        let driver_option = DRIVER.lock().unwrap().clone();
+        if let Some(driver) = driver_option {
             // Driver exists, check if it's still valid
             match driver.title().await {
-                Ok(_) => Ok(driver), // Driver is responsive
+                Ok(_) => return Ok(driver), // Driver is responsive, return early
                 Err(e) => {
                     println!("Driver became unresponsive: {}", e);
-                    println!("Creating a new WebDriver instance...");
-                    let new_driver = create_driver().await?;
-                    *DRIVER.lock().unwrap() = Some(new_driver.clone());
-                    Ok(new_driver)
+                    // We'll create a new one, but we need the lock first
                 }
             }
-        },
-        None => {
-            // First time, create the driver
-            println!("Creating WebDriver for the first time");
-            let new_driver = create_driver().await?;
-            *DRIVER.lock().unwrap() = Some(new_driver.clone());
-            Ok(new_driver)
         }
     }
+    
+    // At this point, either no driver exists or it's unresponsive
+    // Acquire the creation lock to ensure only one thread creates a driver
+    let _lock = DRIVER_CREATION_LOCK.lock().await;
+    
+    // Check again after acquiring lock (another thread might have created it while we were waiting)
+    {
+        let driver_option = DRIVER.lock().unwrap().clone();
+        if let Some(driver) = driver_option {
+            // Try again to see if this driver is valid
+            match driver.title().await {
+                Ok(_) => return Ok(driver), // Driver is responsive
+                Err(_) => {
+                    // Will continue to create a new one
+                    println!("Creating a new WebDriver instance...");
+                }
+            }
+        } else {
+            println!("Creating WebDriver for the first time");
+        }
+    }
+    
+    // Create the driver
+    let new_driver = create_driver().await?;
+    
+    // Store it for future use
+    *DRIVER.lock().unwrap() = Some(new_driver.clone());
+    
+    Ok(new_driver)
 }
 
 /// Clean up the WebDriver state
