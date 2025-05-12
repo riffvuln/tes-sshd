@@ -9,7 +9,4 @@ tokio = { version = "*", features = ["full"] }
 thirtyfour = "*"
 rand = "0.8.5"
 regex = "1.11.1"
-rodio = { version = "0.20.1", default-features = false, features = ["wav"] }
-hound = "3.5.1"
-anyhow = "1.0"
-symphonia = { version = "0.5.3", features = ["mp3", "wav"] }
+anyhow = "1.0.98"
