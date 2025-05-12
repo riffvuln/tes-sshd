@@ -1,8 +1,5 @@
+use std::collections::HashMap;
 use regex::Regex;
-
-
-// Define constants
-const DOWNLOADS_FOLDER: &str = "pypasser/reCaptchaV2/Downloads";
 
 /// Parses the recaptcha anchor URL to extract endpoint and parameters
 pub fn parse_url(anchor_url: &str) -> Option<HashMap<String, String>> {
