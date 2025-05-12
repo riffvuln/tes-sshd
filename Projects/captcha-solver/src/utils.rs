@@ -1,14 +1,5 @@
-use std::path::{Path, PathBuf};
-use std::fs::{self, File};
-use std::io::Write;
-use std::collections::HashMap;
-use std::time::{SystemTime, UNIX_EPOCH};
-use rand::{thread_rng, Rng};
 use regex::Regex;
-use reqwest::Client;
-use anyhow::{Result, Context};
-use std::process::Command;
-use tokio;
+
 
 // Define constants
 const DOWNLOADS_FOLDER: &str = "pypasser/reCaptchaV2/Downloads";
