@@ -8,8 +8,10 @@ impl IOEngine<'_> {
     }
 
     pub fn read(&self) -> Option<String> {
-        Some(std::fs::read_to_string(self.file_path).unwrap_or_default())
+        Some(std::fs::read_to_string(self.file_path).unwrap_or_else(|| None))
     }
 
-    pub fn write(&self) -> 
+    pub fn write(&self, content: &str) -> bool {
+        std::fs::write(self.file_path, content).is_ok()
+    } 
 }
