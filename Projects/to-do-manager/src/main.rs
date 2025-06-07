@@ -23,6 +23,7 @@ impl DataHandler {
     pub fn write_data(&self, content: &str) -> bool {
         self.io_engine.write(content)
     }
+}
 
 pub (crate) fn main() -> Result<(), Box<dyn std::error::Error>> {
     let io_engine = IOEngine::new("data.json");
