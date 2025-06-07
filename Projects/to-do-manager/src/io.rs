@@ -2,8 +2,8 @@ pub struct IOEngine<'a> {
     file_path: &'a str,
 }
 
-impl IOEngine<'a> {
-    pub fn new(file_path: &'a str) -> Self {
+impl IOEngine<'_> {
+    pub fn new<'a>(file_path: &'a str) -> Self {
         Self { file_path}
     }
 
